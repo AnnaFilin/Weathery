@@ -8,6 +8,9 @@
 import Foundation
 
 protocol WeatherServiceProtocol {
-    func fetchCurrentWeather(lat: Double, lon: Double) async throws -> CurrentWeather
-       func fetchForecast(lat: Double, lon: Double) async throws -> Forecast
+    func fetchCurrentWeather(lat: Double, lon: Double) async throws -> RealtimeWeatherResponse
+    func fetchDailyForecast(lat: Double, lon: Double) async throws -> DailyForecastResponse
+    func fetchHourlyForecast(lat: Double, lon: Double) async throws -> HourlyForecastResponse
+    
 }
+

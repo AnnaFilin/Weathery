@@ -1,227 +1,322 @@
+//////
+//////  MainWeatherView.swift
+//////  Weathery
+//////
+//////  Created by Anna Filin on 03/02/2025.
+//////
+//import Foundation
+//import CoreLocation
+//import SwiftUI
+////
+////
+//enum ForecastType: Identifiable {
+//    case daily, weekly, hourly
+//    
+//    var id: Self { self } 
+//}
 //
-//  MainWeatherView.swift
-//  Weathery
+//struct MainWeatherView: View {
+//    @EnvironmentObject private var persistence: Persistence
 //
-//  Created by Anna Filin on 03/02/2025.
+//    @EnvironmentObject var citySearchViewModel: CitySearchViewModel
+//    @ObservedObject var weatherViewModel: WeatherViewModel
+//    
+//    @State private var selectedLayer: String = "precipitation"
+//    
+//    
+//    @State private var selectedForecastType: ForecastType?
+//    @State private var selectedDay: Daily?
+//    @State private var showAdditionalContent = false
+//    @State private var showSheet = false
+//    @State private var showCitySearch = false
+//    
+//    var weatherEaster: String? {
+//        return WeatherEasterEggs.getEasterEgg(for: weatherViewModel.currentWeather?.weatherData.values.weatherCode ?? 0 )
+//    }
+//    
+//    var day: Int {
+//        let calendar = Calendar.current
+//        return calendar.component(.day, from: Date())
+//    }
+//    
+//    var formattedDate: String {
+//        let dateFormatter = DateFormatter()
+//        dateFormatter.dateFormat = "MMM d, yy"
+//        return dateFormatter.string(from: Date())
+//    }
+//    
+//    var isDaytime: Bool {
+//        return weatherViewModel.forecast?.timelines.daily[0].isDaytime ?? true
+//    }
+//    
+//    var weatherDescription: String {
+//        return getWeatherDescription(for: weatherViewModel.currentWeather?.weatherData.values.weatherCode ?? 0, isDaytime: isDaytime)
+//    }
+//    
+//    var weatherIcon: String {
+//        guard let weatherCode = weatherCodes[weatherViewModel.currentWeather?.weatherData.values.weatherCode ?? 0] else {
+//            return "unknown_large"
+//        }
+//        return isDaytime ? weatherCode.iconDay : (weatherCode.iconNight ?? weatherCode.iconDay)
+//    }
+//    
+//    var body: some View {
+//        ScrollView {
+//            VStack(alignment: .leading, spacing: 10)  {
+//                
+//                VStack(alignment: .leading, spacing: 10) {
+//                    HStack {
+//                        Text(weatherViewModel.selectedCity?.name ?? "Current Location")
+//                               .font(.largeTitle)
+//                               .bold()
+//                               .id(UUID())
+//                               .onAppear {
+//                                       print("📌 Отображаем город: \(weatherViewModel.selectedCity?.name ?? "Current Location")")
+//                                   }
+//                        
+//                        Button("Select a city") {
+//                            showCitySearch = true
+//                        }
+//                        .sheet(isPresented: $showCitySearch) {
+//                            CitySearchView(weatherViewModel: weatherViewModel, persistence: persistence, selectedCity: $weatherViewModel.selectedCity, showCitySearch: $showCitySearch,   viewModel: citySearchViewModel) { selectedCity in
+//                                    print("📍 Город выбран: \(selectedCity.name)")
 //
-import Foundation
-
-import SwiftUI
-
-
-enum ForecastType: Identifiable {
-    case daily, weekly, hourly
-
-    var id: Self { self } // ✅ Теперь enum сам себя идентифицирует
-}
-
-
-struct MainWeatherView: View {
-    
-    let currentWeather: RealtimeWeatherResponse
-    let forecast: DailyForecastResponse
-    let hourlyForecast: HourlyForecastResponse
-    @State private var selectedForecastType: ForecastType?
-    
-    @State private var selectedDay: Daily?
-
-     @State private var showSheet = false
-    
-    var day: Int {
-        let calendar = Calendar.current
-        return calendar.component(.day, from: Date())
-    }
-    
-    var formattedDate: String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MMM d, yy"
-        return dateFormatter.string(from: Date())
-    }
-    func formatTime(date: Date) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm"
-        return dateFormatter.string(from: date)
-    }
-    
-    var isDaytime: Bool {
-        let forecast = forecast.timelines.daily[0]
-        if forecast.isDaytime {
-            return true
-        } else {
-            return false
-        }
-    }
-    
-    var weatherDescription: String {
-        let weatherInfo = getWeatherDescription(for: currentWeather.weatherData.values.weatherCode, isDaytime: isDaytime)
-        return weatherInfo
-    }
-    
-    var weatherIcon: String {
-        guard let weatherCode = weatherCodes[currentWeather.weatherData.values.weatherCode] else {
-            return "unknown_large" // Значение по умолчанию
-        }
-        if isDaytime {
-            return weatherCode.iconDay
-        } else {
-            return weatherCode.iconNight ?? weatherCode.iconDay
-        }
-    }
-    
-    var body: some View {
-        VStack {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Beersheba")
-                    .font(.largeTitle)
-                    .bold()
-                HStack {
-                    Text("Today")
-                        .font(.subheadline)
-                        .bold()
-                    Text(formattedDate)
-                }
-            }
-            .padding(.bottom, 20)
-            
-            //            Spacer()
-            
-            VStack {
-                CurrentTemperatureView(
-                    temperature: currentWeather.weatherData.values.temperature,
-                    feelsLikeTemperature: currentWeather.weatherData.values.temperatureApparent
-                )
-                Text(weatherDescription)
-                    .font(.title2)
-                    .padding(.top, 10)
-                
-                
-                Image(weatherIcon)
-                    .font(.system(size: 40))
-                
-                //                HStack(alignment: .top, spacing: 20) {
-                //                    MinMaxTemperatures(
-                //                        minTemperature: forecast.timelines.daily[0].values.temperatureMin ?? currentWeather.weatherData.values.temperature,
-                //                        maxTemperature: forecast.timelines.daily[0].values.temperatureMax ?? currentWeather.weatherData.values.temperature
-                //                    )
-                //                    SunriseSunset(
-                //                        sunriseTimestamp: formatTime(date: forecast.timelines.daily[0].values.sunriseTime!),
-                //                        sunsetTimestamp: formatTime(date: forecast.timelines.daily[0].values.sunsetTime!)
-                //                    )
-                //                }
-            }
-            .padding(.bottom, 20)
-            
-            //            VStack {
-            //                HStack(spacing: 20) {
-            //                    WindView(
-            //                        windSpeed: currentWeather.weatherData.values.windSpeed,
-            //                        windDeg: currentWeather.weatherData.values.windDirection,
-            //                        windGust: currentWeather.weatherData.values.windGust
-            //                    )
-            //                    Humidity(
-            //                        humidity: currentWeather.weatherData.values.humidity,
-            //                        pressure: currentWeather.weatherData.values.pressureSurfaceLevel
-            //                    )
-            //                }
-            //                .padding(.bottom, 20)
-            
+//                                    // ✅ Сохраняем выбранный город
+//                                    citySearchViewModel.updateSelectedCity(city: selectedCity)
 //
-            Spacer()
-            
-            HStack(alignment: .top, spacing: 8) {
-                
-                ZStack(alignment: .topLeading) {
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(Color.white.opacity(0.2))
-                        .frame(width: 90, height: 140)
-
-                    Text("Today") // ✅ Вынес заголовок отдельно, больше не двигается
-                        .font(.headline)
-                        .foregroundColor(.white.opacity(0.9))
-                        .padding(.top, 8)
-                        .padding(.leading, 12)
-
-                    VStack(spacing: 4) {
-                        DayAbstract(
-                            weatherIcon: weatherIcon,
-                            minTemperature: forecast.timelines.daily[0].values.temperatureMin!,
-                            maxTemperature: forecast.timelines.daily[0].values.temperatureMax!,
-                            description: weatherDescription,
-                            isToday: true
-                        )
-                        .padding(.top, 26)
-                        .onTapGesture {
-                            selectedDay = forecast.timelines.daily[0]
-                            selectedForecastType = .daily
-                        }
-
-                    }
-                    .padding(.horizontal, 6)
-                }
-
-                ZStack(alignment: .topLeading) {
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(Color.white.opacity(0.2))
-                        .frame(width: UIScreen.main.bounds.width - 130, height: 140)
-
-                    Text("7 Day Forecast") // ✅ Вынес заголовок отдельно, теперь 100% ровно
-                        .font(.headline)
-                        .foregroundColor(.white.opacity(0.9))
-                        .padding(.top, 8)
-                        .padding(.leading, 12)
-                       
-
-
-                    VStack(spacing: 4) {
-                        ForecastView(forecast: forecast,  selectedDay: $selectedDay, // ✅ Передаём управление
-                                     showSheet: $showSheet, selectedForecastType: $selectedForecastType )
-                            .padding(.top, 26) // ✅ Фиксируем контент ниже заголовка
-
-                    }
-                    .padding(.horizontal, 6)
-                }
-                .onTapGesture {
-                    selectedForecastType = .weekly
-                }
-            }
-            .padding(.horizontal, AppSpacing.horizontal)
-
-            
-            Text(selectedDay != nil ? "Выбран день: \(selectedDay!.values.temperatureMin ?? 0)°C" : "Ничего не выбрано")
-                .onTapGesture {
-                    selectedDay = forecast.timelines.daily[0] // ✅ Меняем день
-                    showSheet = true
-                    print("🔹 Выбран день:", selectedDay?.values.temperatureMin ?? "nil") // ✅ Лог
-                }
-
-            //                }
-            HourlyForecastView(forecast: hourlyForecast.timelines.hourly)
-                .onTapGesture {
-                    selectedForecastType = .hourly
-                }
-            
-            //            }
-        }
-        .sheet(item: $selectedForecastType) { type in
-            switch type {
-            case .daily:
-                if let day = selectedDay { DetailedForecastDay(day: day) }
-            case .weekly:
-                WeeklyForecastSheet(forecast: forecast.timelines.daily)
-            case .hourly:
-                HourlyForecastSheet(hourlyForecast: hourlyForecast.timelines.hourly)
-            }
-        }
-        .padding()
-        .modifier(WeatherBackground(condition: weatherDescription))
-//                .modifier(WeatherBackground(condition: "Clear"))
-        
-        
-    }
-    
-    
-}
-
-#Preview {
-    MainWeatherView(currentWeather: .example, forecast: .exampleDailyForecast, hourlyForecast: .exampleHourlyForecast)
-}
+//                                    // ✅ Загружаем погоду для нового города
+//                                    weatherViewModel.updateLocation(lat: selectedCity.latitude, lon: selectedCity.longitude)
+//
+//                                    // ✅ Закрываем окно выбора города
+//                                    showCitySearch = false
+//                                }
+//                        }
+//          
+//                    }
+//                    HStack {
+//                        Text("Today")
+//                            .font(.subheadline)
+//                            .bold()
+//                        Text(formattedDate)
+//                    }
+//                    
+//                    CurrentTemperatureView(
+//                        temperature: weatherViewModel.currentWeather?.weatherData.values.temperature ?? 0,
+//                        feelsLikeTemperature: weatherViewModel.currentWeather?.weatherData.values.temperatureApparent ?? 0
+//                    )
+//                    
+//                    if let weatherEaster = weatherEaster {
+//                        Text(weatherEaster)
+//                    }
+//                    
+//                    WeatherMoodView(weatherCode: weatherViewModel.currentWeather?.weatherData.values.weatherCode ?? 0)
+//                    
+//                    Text(weatherDescription)
+//                        .font(AppTypography.description)
+//                    
+//                    Image(weatherIcon)
+//                        .font(.system(size: 40))
+//                    
+//                    
+//                }
+//                .padding(.horizontal, AppSpacing.horizontal)
+//                
+//                
+//                Spacer(minLength: 150)
+//                
+//                HStack(alignment: .top, spacing: 8) {
+//                    
+//                    ZStack(alignment: .topLeading) {
+//                        RoundedRectangle(cornerRadius: 15)
+//                        //                                           .fill(Color.white.opacity(0.2))
+//                            .fill(.peachPuff.opacity(0.45))
+//                        
+//                            .frame(width: UIScreen.main.bounds.width * 0.22, height: 150)
+//                        
+//                        VStack(alignment: .leading, spacing: 4) {
+//                            Text("Today")
+//                            //                                           .font(.headline)
+//                                .font(AppTypography.title)
+//                                .foregroundColor(.white.opacity(0.9))
+//                                .padding(.top, 8)
+//                            //                                           .padding(.bottom, 4)
+//                                .padding(.leading, 12)
+//                            
+//                            
+//                            DayAbstract(
+//                                weatherIcon: weatherIcon,
+//                                minTemperature: weatherViewModel.forecast?.timelines.daily[0].values.temperatureMin ?? 0,
+//                                maxTemperature: weatherViewModel.forecast?.timelines.daily[0].values.temperatureMax ?? 0,
+//                                description: weatherDescription,
+//                                isToday: true
+//                            )
+//                            .padding(.top, 6)
+//                            .onTapGesture {
+//                                selectedDay = weatherViewModel.forecast!.timelines.daily[0]
+//                                selectedForecastType = .daily
+//                                print("Выбран день: \(selectedDay?.time ?? Date())")
+//                                print("Выбран ForecastType: \(selectedForecastType!)")
+//                                
+//                            }
+//                            
+//                        }
+//                        .padding(.horizontal, 6)
+//                    }
+//                    
+//                    ZStack(alignment: .topLeading) {
+//                        RoundedRectangle(cornerRadius: 15)
+//                        //                                           .fill(Color.white.opacity(0.2))
+//                            .fill(.peachPuff.opacity(0.45))
+//                            .frame(width: UIScreen.main.bounds.width * 0.7, height: 150)
+//                        
+//                        
+//                        VStack(alignment: .leading, spacing: 4) {
+//                            Text("7 Day Forecast")
+//                                .font(AppTypography.title)
+//                            //                                           .foregroundColor(.white.opacity(0.9))
+//                                .padding(.leading, 12)
+//                            
+//                            
+//                            
+//                            
+//                      
+//                            if let forecast = weatherViewModel.forecast {
+//                                
+//                                ForecastView(forecast: forecast,  selectedDay: $selectedDay,
+//                                             showSheet: $showSheet, selectedForecastType: $selectedForecastType )
+//                                .padding(.top, 6)
+//                            }
+//                            
+//                        }
+//                        
+//                        .padding(.top, 8)
+//                    }
+//                    .onTapGesture {
+//                        selectedForecastType = .weekly
+//                        print("Выбран ForecastType: \(selectedForecastType!)")
+//                    }
+//                }
+//                .padding(.horizontal, AppSpacing.horizontal)
+//                
+//                if let hourlyForecast = weatherViewModel.hourlyForecast {
+//                    if !hourlyForecast.timelines.hourly.isEmpty {
+//                        HourlyForecastView(forecast: hourlyForecast.timelines.hourly)
+//                            .padding(.horizontal, AppSpacing.horizontal)
+//                    } else {
+//                        Text("No hourly data available")
+//                            .foregroundColor(.gray)
+//                            .onTapGesture {
+//                                selectedForecastType = .hourly
+//                                print("Выбран ForecastType: \(selectedForecastType!)")
+//                                
+//                            }
+//                        
+//                        
+//                    }
+//                }
+//                
+//                
+//                GeometryReader { geometry in
+//                    Color.clear
+//                        .frame(height: 1)
+//                        .onAppear {
+//                            withAnimation {
+//                                showAdditionalContent = true
+//                            }
+//                        }
+//                }
+//                
+//                
+//                if showAdditionalContent {
+//                    
+//                    
+//                    VStack {
+//                        ZStack(alignment: .topLeading) {
+//                            RoundedRectangle(cornerRadius: 15)
+//                                .fill(.ultraThinMaterial)
+//                                .frame(width: UIScreen.main.bounds.width - AppSpacing.horizontal, height: 250)
+//                            
+//                            VStack(alignment: .leading, spacing: 5) {
+//                                Text("Precipitation Map")
+//                                    .font(.headline)
+//                                    .foregroundColor(.white)
+//                                    .padding(.leading, 12)
+//                                    .padding(.top, 8)
+//                                
+//                                Picker("Weather Layer", selection: $selectedLayer) {
+//                                    Text("Wind").tag("wind_new")
+//                                    Text("Precipitation").tag("precipitation_new")
+//                                    Text("Clouds").tag("clouds_new")
+//                                    Text("Temperature").tag("temp_new")
+//                                }
+//                                .pickerStyle(SegmentedPickerStyle())
+//                                .padding(.horizontal, 10)
+//                                
+//                                
+//                                if let location = weatherViewModel.location {
+//                                    Text("Координаты: \(location.latitude), \(location.longitude)")
+//                                        .foregroundColor(.red)
+////                                    WeatherMapsView(
+////                                        location: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude),
+////                                        selectedLayer: "precipitation_new" // 🌧️ Выбери нужный слой
+////                                    )
+////                                        .frame(height: 250) // Указываем высоту карты
+//
+////                                    WeatherMapView(location: location, selectedLayer: selectedLayer)
+//                                        .frame(height: 250)
+//                                        .clipShape(RoundedRectangle(cornerRadius: 15))
+//                                        .background(
+//                                            RoundedRectangle(cornerRadius: 15)
+//                                                .fill(Color.white.opacity(0.15))
+//                                        )
+//                                        .frame(height: 180)
+//                                        .padding(.horizontal, 8)
+//                                } else {
+//                                    Text("Location unavailable")
+//                                        .foregroundColor(.red)
+//                                        .padding()
+//                                }
+//                            }
+//                            .padding(.horizontal, 10)
+//                        }
+//                    }
+//                    .padding(.horizontal, AppSpacing.horizontal)
+//                }
+//            }
+//        }
+//        
+//        .sheet(item: $selectedForecastType) { type in
+//            switch type {
+//            case .daily:
+//                if let day = selectedDay {
+//                    DetailedWeatherSheet(dayForecast:  day)
+//                        .id(UUID())
+//                        .presentationDragIndicator(.visible)
+//                } else {
+//                    Text("Ошибка: selectedDay пустой")
+//                }
+//            case .weekly:
+//                WeeklyForecastSheet(forecast: weatherViewModel.forecast!.timelines.daily)
+//            case .hourly:
+//                HourlyForecastSheet(hourlyForecast: weatherViewModel.hourlyForecast!.timelines.hourly)
+//            }
+//        }
+//        .id(selectedDay?.id)
+//        .padding()
+//        //        .modifier(WeatherBackground(condition: weatherDescription))
+//        .modifier(WeatherBackground(condition: "Clear"))
+//        .onAppear {
+//            print("🚀 Передаем в WeatherMapView: \(weatherViewModel.location?.latitude ?? 0), \(weatherViewModel.location?.longitude ?? 0)")
+//        }
+//    }
+//}
+//
+//#Preview {
+//    let weatherViewModel = WeatherViewModel(locationManager: LocationManager())
+//    let persistence = Persistence()
+//    let citySearchViewModel = CitySearchViewModel(weatherViewModel: weatherViewModel, persistence: persistence)
+//
+//    MainWeatherView(weatherViewModel: weatherViewModel)
+//        .environmentObject(citySearchViewModel)
+//        .environmentObject(persistence)
+//}

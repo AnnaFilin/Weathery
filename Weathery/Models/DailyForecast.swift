@@ -18,7 +18,7 @@ struct DailyForecastResponse: Codable {
        }
     
     static var exampleDayForecast: Daily? {
-        return exampleDaily.first // ✅ Если массив пустой, вернёт nil
+        return exampleDaily.first 
     }
 
 }
@@ -28,7 +28,7 @@ struct DailyTimelines: Codable {
 }
 
 
-struct Daily: Codable, Identifiable {
+struct Daily: Codable, Identifiable,Hashable {
     var id = UUID()
     let time: Date
     let values: DailyValues
@@ -39,7 +39,7 @@ struct Daily: Codable, Identifiable {
     }
 }
 
-struct DailyValues: Codable {
+struct DailyValues: Codable , Hashable{
     let cloudBaseAvg, cloudBaseMax, cloudBaseMin, cloudCeilingAvg: Double?
     let cloudCeilingMax, cloudCeilingMin: Double?
     let cloudCoverAvg, cloudCoverMax, cloudCoverMin: Double?
@@ -79,7 +79,7 @@ struct DailyValues: Codable {
 extension Daily {
     var isDaytime: Bool {
             guard let sunrise = values.sunriseTime, let sunset = values.sunsetTime else {
-                return false // Если данных нет, считаем, что ночь
+                return false
             }
             let now = Date()
             return (sunrise...sunset).contains(now)

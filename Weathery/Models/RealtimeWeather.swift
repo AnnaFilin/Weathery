@@ -19,16 +19,14 @@ struct RealtimeWeatherResponse: Codable {
     static let example: RealtimeWeatherResponse = Bundle.main.decode("MockRealtimeWeather.json")
 }
 
-// MARK: - WeatherData
 struct WeatherData: Codable {
     let time: Date
     let values: WeatherValues
 }
 
-// MARK: - WeatherValues
 struct WeatherValues: Codable {
-    let cloudBase: Double
-    let cloudCeiling: Double
+    let cloudBase: Double?
+    let cloudCeiling: Double?
     let cloudCover: Int
     let dewPoint: Double
     let freezingRainIntensity: Double
@@ -49,12 +47,11 @@ struct WeatherValues: Codable {
     let windSpeed: Double
 }
 
-// MARK: - Location
 struct Location: Codable {
     let latitude: Double
     let longitude: Double
-    let name: String
-    let type: String
+    let name: String?
+    let type: String?
 
     enum CodingKeys: String, CodingKey {
         case latitude = "lat"

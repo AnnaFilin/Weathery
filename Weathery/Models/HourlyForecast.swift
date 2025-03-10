@@ -150,8 +150,8 @@ struct HourlyTimelines: Codable {
     
 }
 
-struct Hourly: Codable, Identifiable {
-    var id = UUID() 
+struct Hourly: Codable, Identifiable, Hashable {
+    var id = UUID()
     let time: Date
     let values: HourlyValues
     
@@ -164,7 +164,7 @@ struct Hourly: Codable, Identifiable {
     
 }
 
-struct HourlyValues: Codable {
+struct HourlyValues: Codable, Hashable {
     let cloudBase, cloudCeiling, cloudCover, dewPoint: Double?
     let evapotranspiration, freezingRainIntensity, hailProbability, hailSize: Double?
     let humidity, iceAccumulation, iceAccumulationLwe: Double?
