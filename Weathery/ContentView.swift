@@ -67,43 +67,41 @@ struct ContentView: View {
         }
         .edgesIgnoringSafeArea(.bottom)
         
-        
-        .onReceive(weatherViewModel.$selectedCity) { newCity in
-            
-            let cityName = newCity?.name ?? "nil"
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                print("🟢 Проверяем ещё раз: \(self.weatherViewModel.selectedCity?.name ?? "nil")")
-            }
-            
-            print("🔄 onReceive сработал для города: \(cityName)")
-            
-            guard let newCity = newCity else {
-                print("⚠️ selectedCity обновился, но всё ещё nil")
-                return
-            }
-            
-            print("📌 selectedCity обновился: \(newCity.name)")
-            
-            if weatherViewModel.isUserSelectedCity {
-                print("🛑 Не загружаем, isUserSelectedCity = \(weatherViewModel.isUserSelectedCity)")
-                
-                print("🚫 Город выбран пользователем, не загружаем погоду автоматически")
-                return
-            }
-            
-            if let oldCity = weatherViewModel.selectedCity, oldCity.id == newCity.id, weatherViewModel.isUserSelectedCity == false {
-                print("⚠️ Город не изменился, не вызываем fetchWeatherData")
-                return
-            }
-
-            
-            print("🌍 Загружаем погоду для: \(newCity.name)")
-            Task {
-                await weatherViewModel.fetchWeatherData(for: newCity)
-            }
-            
-        }
+//        
+//        .onReceive(weatherViewModel.$selectedCity) { newCity in
+//            
+//            let cityName = newCity?.name ?? "nil"
+//            
+//            print("🔄 onReceive сработал для города: weatherViewModel.$selectedCity \(cityName)")
+//            
+//            guard let newCity = newCity else {
+//                print("⚠️ selectedCity обновился,weatherViewModel.$selectedCity но всё ещё nil")
+//                return
+//            }
+//                        
+//            print("🌍 Загружаем погоду для: \(newCity.name)")
+//            Task {
+//                await weatherViewModel.fetchWeatherData(for: newCity)
+//            }
+//            
+//        }
+//        .onReceive(weatherViewModel.$userLocationCity) { newCity in
+//            
+//            let cityName = newCity?.name ?? "nil"
+//                 
+//            print("🔄 onReceive сработал для weatherViewModel.$userLocationCity города: \(cityName)")
+//            
+//            guard let newCity = newCity else {
+//                print("⚠️ selectedCity обновился  weatherViewModel.$userLocationCity, но всё ещё nil")
+//                return
+//            }
+// 
+//            print("🌍 Загружаем погоду для: weatherViewModel.$userLocationCity \(newCity.name)")
+//            Task {
+//                await weatherViewModel.fetchWeatherData(for: newCity)
+//            }
+//            
+//        }
         
         .onAppear {
             print("📍 ContentView запрашивает requestLocation()")

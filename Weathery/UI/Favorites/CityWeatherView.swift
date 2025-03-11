@@ -33,7 +33,6 @@ struct CityWeatherView: View {
     @State private var showAdditionalContent = false
     @Binding var selectedTab: Int
     
-    //    @State private var localHour: Int = Calendar.current.component(.hour, from: Date()) // Запасной вариант
     
     var day: Int {
         let calendar = Calendar.current
@@ -60,6 +59,11 @@ struct CityWeatherView: View {
     
     var weatherDescription: String {
         guard let currentWeather = weatherData.0 else { return "Unknown" } // ✅ `weatherData.0` – это RealtimeWeatherResponse
+        
+
+//            print("Realtime Weather: \(currentWeather)")
+
+
         return getWeatherDescription(for: currentWeather.weatherData.values.weatherCode, isDaytime: isDaytime)
     }
     
@@ -79,7 +83,7 @@ struct CityWeatherView: View {
             
             
             //            if let currentWeather = weatherData.0 {
-            if let selectedCity = weatherViewModel.selectedCity, let currentWeather = weatherData.0 {
+            if let selectedCity = weatherViewModel.selectedCity ?? weatherViewModel.userLocationCity , let currentWeather = weatherData.0 {
                 
                 WeatherSummaryView(
                     city: city.toCity(),  // ✅ Преобразуем `PersistentCity` в `City`
@@ -95,48 +99,48 @@ struct CityWeatherView: View {
             
             Spacer(minLength: 100)
             //
-            //            ScrollView {
-            //
-            //
-            //                if let dailyForecast = weatherData.1,
-            //                   let hourlyForecast = weatherData.2 {
-            //
-            //                    ForecastCardsView(
-            //                        dailyForecast: dailyForecast,
-            //                        hourlyForecast: hourlyForecast,
-            //                        weatherDescription: weatherDescription,
-            //                        weatherIcon: weatherIcon,
-            //                        selectedForecastType: $selectedForecastType,  // ✅ Передаём биндинг
-            //                        selectedDay: $selectedDay,  // ✅ Передаём биндинг
-            //                        showSheet: $showSheet  // ✅ Передаём биндинг
-            //                    )
-            //                }
-            //
-            //                //                MapView(weatherViewModel: weatherViewModel)
-            //
-            //
-            //            }
-            //
-            //
-            //            // FORECAST SHEETS... details
-            //            .sheet(item: $selectedForecastType) { type in
-            //                switch type {
-            //                case .daily:
-            //                    if let day = selectedDay {
-            //                        DetailedWeatherSheet(dayForecast:  day)
-            //                            .id(UUID())
-            //                            .presentationDragIndicator(.visible)
-            //                    } else {
-            //                        Text("Ошибка: selectedDay пустой")
-            //                    }
-            //                case .weekly:
-            //                    WeeklyForecastSheet(forecast: weatherViewModel.forecast!.timelines.daily)
-            //                case .hourly:
-            //                    HourlyForecastSheet(hourlyForecast: weatherViewModel.hourlyForecast!.timelines.hourly)
-            //                }
-            //            }
-            //            .id(selectedDay?.id)
-            //
+                        ScrollView {
+            
+            
+                            if let dailyForecast = weatherData.1,
+                               let hourlyForecast = weatherData.2 {
+            
+                                ForecastCardsView(
+                                    dailyForecast: dailyForecast,
+                                    hourlyForecast: hourlyForecast,
+                                    weatherDescription: weatherDescription,
+                                    weatherIcon: weatherIcon,
+                                    selectedForecastType: $selectedForecastType,  // ✅ Передаём биндинг
+                                    selectedDay: $selectedDay,  // ✅ Передаём биндинг
+                                    showSheet: $showSheet  // ✅ Передаём биндинг
+                                )
+                            }
+            
+                            //                MapView(weatherViewModel: weatherViewModel)
+            
+            
+                        }
+            
+            
+                        // FORECAST SHEETS... details
+                        .sheet(item: $selectedForecastType) { type in
+                            switch type {
+                            case .daily:
+                                if let day = selectedDay {
+                                    DetailedWeatherSheet(dayForecast:  day)
+                                        .id(UUID())
+                                        .presentationDragIndicator(.visible)
+                                } else {
+                                    Text("Ошибка: selectedDay пустой")
+                                }
+                            case .weekly:
+                                WeeklyForecastSheet(forecast: weatherViewModel.forecast!.timelines.daily)
+                            case .hourly:
+                                HourlyForecastSheet(hourlyForecast: weatherViewModel.hourlyForecast!.timelines.hourly)
+                            }
+                        }
+                        .id(selectedDay?.id)
+            
         }
         .onAppear {
             

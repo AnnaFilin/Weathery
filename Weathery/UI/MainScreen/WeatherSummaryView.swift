@@ -51,33 +51,28 @@ struct WeatherSummaryView: View {
                 Text(formattedDate)
                 
 
-            }
-            VStack {
-                
-                Text(currentWeather.weatherData.time, formatter: DateFormatter.timeWithAMPM)
+                Text(currentWeather.weatherData.time, formatter: DateFormatter.timeWithMinutes)
                     .font(.subheadline)
-                
-                
-                Text("API Time: \(currentWeather.weatherData.time)")
-                
-                    .foregroundColor(.red)
-
-
-                Text("Local Time: \(localTime)")
-                            .foregroundColor(.green)
-                            .onAppear {
-                                Task {
-                                    localTime = await convertToLocalTime(
-                                        currentWeather.weatherData.time,
-                                        latitude: city.latitude,
-                                        longitude: city.longitude
-                                    )
-                                    print("🟢 WeatherSummaryView: localTime = \(localTime)")
-
-                                }
-                            }
-                
             }
+            
+//            VStack {
+//                Text("API Time: \(currentWeather.weatherData.time)")
+//                
+//                    .foregroundColor(.red)
+//                Text("Local Time: \(localTime)")
+//                            .foregroundColor(.green)
+//                            .onAppear {
+//                                Task {
+//                                    localTime = await convertToLocalTime(
+//                                        currentWeather.weatherData.time,
+//                                        latitude: city.latitude,
+//                                        longitude: city.longitude
+//                                    )
+//                                    print("🟢 WeatherSummaryView: localTime = \(localTime)")
+//
+//                                }
+//                            }
+//            }
             
             CurrentTemperatureView(
                 temperature: currentWeather.weatherData.values.temperature ,

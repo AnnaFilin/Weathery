@@ -97,54 +97,51 @@
 ////    }
 //
 //}
-
-
 import Foundation
 
 struct WeatherService: WeatherServiceProtocol {
     private let apiKey = Config.apiKey
     private let baseURL = "https://api.tomorrow.io/v4/weather/"
 
-    /// Получение текущей погоды
+    /// Fetches the current weather
     func fetchCurrentWeather(lat: Double, lon: Double) async throws -> RealtimeWeatherResponse {
         return try await fetchWeatherData(endpoint: "realtime", lat: lat, lon: lon)
     }
 
-    /// Получение прогноза на несколько дней
+    /// Fetches the daily forecast
     func fetchDailyForecast(lat: Double, lon: Double) async throws -> DailyForecastResponse {
         return try await fetchWeatherData(endpoint: "forecast", lat: lat, lon: lon, additionalParams: [
             URLQueryItem(name: "timesteps", value: "1d")
         ])
     }
 
-    /// Получение почасового прогноза
+    /// Fetches the hourly forecast
     func fetchHourlyForecast(lat: Double, lon: Double) async throws -> HourlyForecastResponse {
         return try await fetchWeatherData(endpoint: "forecast", lat: lat, lon: lon, additionalParams: [
             URLQueryItem(name: "timesteps", value: "1h")
         ])
     }
 
-    /// Универсальная функция для получения данных
+    /// Generic function for fetching weather data
     private func fetchWeatherData<T: Decodable>(endpoint: String, lat: Double, lon: Double, additionalParams: [URLQueryItem] = []) async throws -> T {
         
-        print("🔗 Вызван fetchWeatherData для: \(endpoint) (\(lat), \(lon))")
+        print("🔗 fetchWeatherData called for: \(endpoint) (\(lat), \(lon))")
 
         let url = URL(string: "\(baseURL)\(endpoint)")!
         var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
         
-        // Основные параметры запроса
+        // Core request parameters
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "location", value: "\(lat),\(lon)"),
             URLQueryItem(name: "apikey", value: apiKey)
         ]
         
-        // Добавляем дополнительные параметры, если они есть
+        // Add additional parameters if present
         queryItems.append(contentsOf: additionalParams)
         components.queryItems = queryItems
         
-        print("🔗 Запрос: \(components.url!.absoluteString)")
+        print("🔗 Request URL: \(components.url!.absoluteString)")
 
-        
         var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
         request.timeoutInterval = 10
@@ -156,19 +153,19 @@ struct WeatherService: WeatherServiceProtocol {
         return try await fetchData(from: request)
     }
 
-    /// Функция запроса данных
+    /// Performs the actual data request
     private func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
         let (data, _) = try await URLSession.shared.data(for: request)
 //        print("Received JSON: \(String(data: data, encoding: .utf8) ?? "Invalid JSON")")
         let rawJSON = String(data: data, encoding: .utf8) ?? "Invalid JSON"
-        print("📡 Ответ API (сырой JSON): \(rawJSON)")
+//        print("📡 API response (raw JSON): \(rawJSON)")
         
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
 
         do {
-            print("✅ Успешно decoder.decode данные!")
+            print("✅ Successfully decoded data!")
 
             return try decoder.decode(T.self, from: data)
         } catch {
@@ -176,6 +173,86 @@ struct WeatherService: WeatherServiceProtocol {
             throw error
         }
     }
-    
-   
 }
+
+//
+//import Foundation
+//
+//struct WeatherService: WeatherServiceProtocol {
+//    private let apiKey = Config.apiKey
+//    private let baseURL = "https://api.tomorrow.io/v4/weather/"
+//
+//    /// Получение текущей погоды
+//    func fetchCurrentWeather(lat: Double, lon: Double) async throws -> RealtimeWeatherResponse {
+//        return try await fetchWeatherData(endpoint: "realtime", lat: lat, lon: lon)
+//    }
+//
+//    /// Получение прогноза на несколько дней
+//    func fetchDailyForecast(lat: Double, lon: Double) async throws -> DailyForecastResponse {
+//        return try await fetchWeatherData(endpoint: "forecast", lat: lat, lon: lon, additionalParams: [
+//            URLQueryItem(name: "timesteps", value: "1d")
+//        ])
+//    }
+//
+//    /// Получение почасового прогноза
+//    func fetchHourlyForecast(lat: Double, lon: Double) async throws -> HourlyForecastResponse {
+//        return try await fetchWeatherData(endpoint: "forecast", lat: lat, lon: lon, additionalParams: [
+//            URLQueryItem(name: "timesteps", value: "1h")
+//        ])
+//    }
+//
+//    /// Универсальная функция для получения данных
+//    private func fetchWeatherData<T: Decodable>(endpoint: String, lat: Double, lon: Double, additionalParams: [URLQueryItem] = []) async throws -> T {
+//        
+//        print("🔗 Вызван fetchWeatherData для: \(endpoint) (\(lat), \(lon))")
+//
+//        let url = URL(string: "\(baseURL)\(endpoint)")!
+//        var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
+//        
+//        // Основные параметры запроса
+//        var queryItems: [URLQueryItem] = [
+//            URLQueryItem(name: "location", value: "\(lat),\(lon)"),
+//            URLQueryItem(name: "apikey", value: apiKey)
+//        ]
+//        
+//        // Добавляем дополнительные параметры, если они есть
+//        queryItems.append(contentsOf: additionalParams)
+//        components.queryItems = queryItems
+//        
+//        print("🔗 Запрос: \(components.url!.absoluteString)")
+//
+//        
+//        var request = URLRequest(url: components.url!)
+//        request.httpMethod = "GET"
+//        request.timeoutInterval = 10
+//        request.allHTTPHeaderFields = [
+//            "accept": "application/json",
+//            "accept-encoding": "deflate, gzip, br"
+//        ]
+//
+//        return try await fetchData(from: request)
+//    }
+//
+//    /// Функция запроса данных
+//    private func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
+//        let (data, _) = try await URLSession.shared.data(for: request)
+////        print("Received JSON: \(String(data: data, encoding: .utf8) ?? "Invalid JSON")")
+//        let rawJSON = String(data: data, encoding: .utf8) ?? "Invalid JSON"
+////        print("📡 Ответ API (сырой JSON): \(rawJSON)")
+//        
+//        let decoder = JSONDecoder()
+//        decoder.keyDecodingStrategy = .convertFromSnakeCase
+//        decoder.dateDecodingStrategy = .iso8601
+//
+//        do {
+//            print("✅ Успешно decoder.decode данные!")
+//
+//            return try decoder.decode(T.self, from: data)
+//        } catch {
+//            print("Decoding error: \(error)")
+//            throw error
+//        }
+//    }
+//    
+//   
+//}

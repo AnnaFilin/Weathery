@@ -70,4 +70,11 @@ extension DateFormatter {
         formatter.locale = Locale.current
         return formatter
     }()
+    
+    static let timeWithMinutes: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "h:mm a" // Показывает "9:15 PM"
+            formatter.locale = Locale.current
+            return formatter
+        }()
 }

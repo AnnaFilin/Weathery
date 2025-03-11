@@ -58,7 +58,7 @@ struct CitySearchResults: View {
                                   // ✅ ОБНОВЛЯЕМ ГОРОД ЧЕРЕЗ `Task {}` ЧТОБЫ ГАРАНТИРОВАННО ЗАГРУЗИТЬ ПОГОДУ
                                   Task {
                                       print("🟡 Выбран город (через избранное): \(city.name)")
-                                      weatherViewModel.isUserSelectedCity = true
+//                                      weatherViewModel.isUserSelectedCity = true
                                       weatherViewModel.selectedCity = city
                                       await weatherViewModel.fetchWeatherData(for: city)
                                   }
@@ -91,7 +91,7 @@ struct CitySearchResults: View {
                             onCitySelected(city)
                             Task {
                                 print("🔄 Загружаем погоду для: \(city.name)")
-                                weatherViewModel.isUserSelectedCity = true
+//                                weatherViewModel.isUserSelectedCity = true
                                 weatherViewModel.selectedCity = city
                                 await weatherViewModel.fetchWeatherData(for: city)
                             }
