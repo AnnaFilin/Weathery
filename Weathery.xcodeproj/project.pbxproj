@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5A66164E2D89D6D2001DBCA3 /* log.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5A66164D2D89D6D2001DBCA3 /* log.txt */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		5A4EA6F02D4F755700A8D868 /* Weathery.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Weathery.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A66164D2D89D6D2001DBCA3 /* log.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = log.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +37,7 @@
 		5A4EA6E72D4F755700A8D868 = {
 			isa = PBXGroup;
 			children = (
+				5A66164D2D89D6D2001DBCA3 /* log.txt */,
 				5A4EA6F22D4F755700A8D868 /* Weathery */,
 				5A4EA6F12D4F755700A8D868 /* Products */,
 			);
@@ -109,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A66164E2D89D6D2001DBCA3 /* log.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

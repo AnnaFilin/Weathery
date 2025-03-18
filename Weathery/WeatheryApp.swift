@@ -19,7 +19,15 @@ struct WeatheryApp: App {
     init() {
         let persistenceInstance = Persistence()
               let locationManagerInstance = LocationManager() // ✅ Используем один объект
-              let weatherVM = WeatherViewModel(persistence: persistenceInstance, locationManager: locationManagerInstance)
+        let weatherServiceInstance = WeatherService() // ✅ Явно создаём WeatherService
+           let citySearchServiceInstance = CitySearchService() // ✅
+
+        let weatherVM = WeatherViewModel(
+            persistence: persistenceInstance,
+            locationManager: locationManagerInstance,
+            weatherService: weatherServiceInstance, // ✅ Передаём сервис
+                   cityService: citySearchServiceInstance  // ✅ Передаём сервис
+        )
 
               _persistence = StateObject(wrappedValue: persistenceInstance)
               _locationManager = StateObject(wrappedValue: locationManagerInstance)

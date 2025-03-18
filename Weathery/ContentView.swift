@@ -62,6 +62,7 @@ struct ContentView: View {
             print("🟢 ContentView appeared: selectedCity = \(weatherViewModel.selectedCity?.name ?? "nil")")
             print("🟢 ContentView appeared: locationCity = \(weatherViewModel.userLocationCity?.name ?? "nil")")
             
+            print("🌍 [DEBUG] ContentView onAppear вызван")
             print("📍 ContentView запрашивает requestLocation()")
             weatherViewModel.requestLocation()
         }

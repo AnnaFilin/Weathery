@@ -27,7 +27,6 @@ struct WeatherContentView: View {
     
     var body: some View {
         let favoriteCities = Array(persistence.favoritedCities)
-//        let hasSelectedCity = weatherViewModel.selectedCity != nil
         let hasUserLocationCity = weatherViewModel.userLocationCity != nil
         
         TabView(selection: $selectedCityIndexStore.selectedCityIndex) {
@@ -72,22 +71,32 @@ struct WeatherContentView: View {
         .background(Color.clear)
         
         .onAppear {
+            print("📍 [DEBUG] WeatherContentView onAppear вызван")
             if !initialIndexSet, let userCity = weatherViewModel.userLocationCity {
                 updateSelectedCityIndex(for: userCity)
                 initialIndexSet = true
             }
         }
         
-        .onChange(of: weatherViewModel.userLocationCity) { oldValue, newUserCity in
-            if let newUserCity {
-                updateSelectedCityIndex(for: newUserCity)
-            }
-        }
+//        .onChange(of: weatherViewModel.userLocationCity) { oldValue, newUserCity in
+//            if let newUserCity {
+//                updateSelectedCityIndex(for: newUserCity)
+//            }
+//        }
+//        .onChange(of: weatherViewModel.selectedCity) { oldValue, newSelectedCity in
+//            if let newSelectedCity {
+//                updateSelectedCityIndex(for: newSelectedCity)
+//            }
+//        }
         .onChange(of: weatherViewModel.selectedCity) { oldValue, newSelectedCity in
-            if let newSelectedCity {
-                updateSelectedCityIndex(for: newSelectedCity)
-            }
+            guard let newSelectedCity, oldValue?.id != newSelectedCity.id else { return }
+            updateSelectedCityIndex(for: newSelectedCity)
         }
+        .onChange(of: weatherViewModel.userLocationCity) { oldValue, newUserCity in
+            guard let newUserCity, oldValue?.id != newUserCity.id else { return }
+            updateSelectedCityIndex(for: newUserCity)
+        }
+
         
         
         .ignoresSafeArea()
