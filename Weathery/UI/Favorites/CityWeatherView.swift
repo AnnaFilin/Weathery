@@ -1,10 +1,10 @@
+////
+////  CityWeatherView.swift
+////  Weathery
+////
+////  Created by Anna Filin on 21/02/2025.
+////
 //
-//  CityWeatherView.swift
-//  Weathery
-//
-//  Created by Anna Filin on 21/02/2025.
-//
-
 import SwiftUI
 
 enum ForecastType: Identifiable {
@@ -16,23 +16,35 @@ enum ForecastType: Identifiable {
 }
 
 
+import SwiftUI
+
 struct CityWeatherView: View {
     @EnvironmentObject var weatherViewModel: WeatherViewModel
     @EnvironmentObject var citySearchViewModel: CitySearchViewModel
     @EnvironmentObject var persistence: Persistence
     
     var city: PersistentCity
-    var weatherData: (RealtimeWeatherResponse?, DailyForecastResponse?, HourlyForecastResponse?)
-    
+    @State private var weatherData: (RealtimeWeatherResponse?, DailyForecastResponse?, HourlyForecastResponse?)
     
     @State var selectedForecastType: ForecastType?
     @State var selectedDay: Daily?
     @State private var showSheet = false
-    
-    
     @State private var showAdditionalContent = false
     @Binding var selectedTab: Int
     
+    var effectiveWeatherData: (RealtimeWeatherResponse?, DailyForecastResponse?, HourlyForecastResponse?) {
+        if city.id == weatherViewModel.selectedCity?.id {
+            print("📌 [DEBUG] effectiveWeatherData: Показываем selectedCityWeather для \(city.name), температура: \(weatherViewModel.selectedCityWeather.0?.weatherData.values.temperature ?? -999)°C")
+            return weatherViewModel.selectedCityWeather
+        } else if city.id == weatherViewModel.userLocationCity?.id {
+            print("📌 [DEBUG] effectiveWeatherData: Показываем userLocationWeather для \(city.name), температура: \(weatherViewModel.userLocationWeather.0?.weatherData.values.temperature ?? -999)°C")
+            return weatherViewModel.userLocationWeather
+        } else {
+            print("📌 [DEBUG] effectiveWeatherData: Используем weatherData для \(city.name), температура: \(weatherData.0?.weatherData.values.temperature ?? -999)°C")
+            return weatherData
+        }
+    }
+
     
     var day: Int {
         let calendar = Calendar.current
@@ -45,51 +57,47 @@ struct CityWeatherView: View {
         return dateFormatter.string(from: Date())
     }
     
-    
     var weatherEaster: String? {
-        guard let currentWeather = weatherData.0 else { return nil } // ✅ Берём данные из `weatherData.0`
+        guard let currentWeather = effectiveWeatherData.0 else { return nil }
         return WeatherEasterEggs.getEasterEgg(for: currentWeather.weatherData.values.weatherCode)
     }
     
-    
     var isDaytime: Bool {
-        guard let forecast = weatherData.1 else { return true } // ✅ `weatherData.1` – это DailyForecastResponse
+        guard let forecast = effectiveWeatherData.1 else { return true }
         return forecast.timelines.daily[0].isDaytime
     }
     
     var weatherDescription: String {
-        guard let currentWeather = weatherData.0 else { return "Unknown" } // ✅ `weatherData.0` – это RealtimeWeatherResponse
-        
-
-//            print("Realtime Weather: \(currentWeather)")
-
-
+        guard let currentWeather = effectiveWeatherData.0 else { return "Unknown" }
         return getWeatherDescription(for: currentWeather.weatherData.values.weatherCode, isDaytime: isDaytime)
     }
     
     var weatherIcon: String {
-        guard let currentWeather = weatherData.0 else { return "unknown_large" } // ✅ `weatherData.0`
+        guard let currentWeather = effectiveWeatherData.0 else { return "unknown_large" }
         guard let weatherCode = weatherCodes[currentWeather.weatherData.values.weatherCode] else {
             return "unknown_large"
         }
         return isDaytime ? weatherCode.iconDay : (weatherCode.iconNight ?? weatherCode.iconDay)
     }
     
-    
     var body: some View {
-        
-        
-        VStack(alignment: .leading, spacing: 10)  {
+        VStack(alignment: .leading, spacing: 10) {
+//
+            if let temperature = effectiveWeatherData.0?.weatherData.values.temperature {
+                       Text("Температура: \(temperature)°C")
+                           .font(.largeTitle)
+                   } else {
+                       Text("⏳ Загрузка погоды для \(city.name)...")
+                           .font(.headline)
+                           .foregroundColor(.gray)
+                   }
             
-            
-            //            if let currentWeather = weatherData.0 {
-            if let selectedCity = weatherViewModel.selectedCity ?? weatherViewModel.userLocationCity , let currentWeather = weatherData.0 {
-                
+            if let currentWeather = effectiveWeatherData.0 {
                 WeatherSummaryView(
-                    city: city.toCity(),  // ✅ Преобразуем `PersistentCity` в `City`
-                    weatherDescription: getWeatherDescription(for: currentWeather.weatherData.values.weatherCode),
-                    currentWeather: currentWeather,  // ✅ Передаём погоду, а не весь weatherData
-                    weatherEaster: WeatherEasterEggs.getEasterEgg(for: currentWeather.weatherData.values.weatherCode),
+                    city: city.toCity(),
+                    weatherDescription: weatherDescription,
+                    currentWeather: currentWeather,
+                    weatherEaster: weatherEaster,
                     formattedDate: formattedDate,
                     weatherIcon: weatherIcon,
                     selectedTab: $selectedTab
@@ -98,119 +106,137 @@ struct CityWeatherView: View {
             }
             
             Spacer(minLength: 100)
-            //
-                        ScrollView {
             
-            
-                            if let dailyForecast = weatherData.1,
-                               let hourlyForecast = weatherData.2 {
-            
-                                ForecastCardsView(
-                                    dailyForecast: dailyForecast,
-                                    hourlyForecast: hourlyForecast,
-                                    weatherDescription: weatherDescription,
-                                    weatherIcon: weatherIcon,
-                                    selectedForecastType: $selectedForecastType,  // ✅ Передаём биндинг
-                                    selectedDay: $selectedDay,  // ✅ Передаём биндинг
-                                    showSheet: $showSheet  // ✅ Передаём биндинг
-                                )
-                            }
-            
-                            //                MapView(weatherViewModel: weatherViewModel)
-            
-            
-                        }
-            
-            
-                        // FORECAST SHEETS... details
-                        .sheet(item: $selectedForecastType) { type in
-                            switch type {
-                            case .daily:
-                                if let day = selectedDay {
-                                    DetailedWeatherSheet(dayForecast:  day)
-                                        .id(UUID())
-                                        .presentationDragIndicator(.visible)
-                                } else {
-                                    Text("Ошибка: selectedDay пустой")
-                                }
-                            case .weekly:
-                                WeeklyForecastSheet(forecast: weatherViewModel.forecast!.timelines.daily)
-                            case .hourly:
-                                HourlyForecastSheet(hourlyForecast: weatherViewModel.hourlyForecast!.timelines.hourly)
-                            }
-                        }
-                        .id(selectedDay?.id)
-            
+            ScrollView {
+                if let dailyForecast = effectiveWeatherData.1, let hourlyForecast = effectiveWeatherData.2 {
+                    ForecastCardsView(
+                        dailyForecast: dailyForecast,
+                        hourlyForecast: hourlyForecast,
+                        weatherDescription: weatherDescription,
+                        weatherIcon: weatherIcon,
+                        selectedForecastType: $selectedForecastType,
+                        selectedDay: $selectedDay,
+                        showSheet: $showSheet
+                    )
+                }
+            }
+            .sheet(item: $selectedForecastType) { type in
+                switch type {
+                case .daily:
+                    if let day = selectedDay {
+                        DetailedWeatherSheet(dayForecast: day)
+                            .id(UUID())
+                            .presentationDragIndicator(.visible)
+                    } else {
+                        Text("Error: `selectedDay` is nil")
+                    }
+                case .weekly:
+                    WeeklyForecastSheet(forecast: effectiveWeatherData.1!.timelines.daily)
+                case .hourly:
+                    HourlyForecastSheet(hourlyForecast: effectiveWeatherData.2!.timelines.hourly)
+                }
+            }
+            .id(selectedDay?.id)
         }
         .onAppear {
+            print("📌 [DEBUG] onAppear: selectedCity = \(weatherViewModel.selectedCity?.name ?? "nil")")
+               print("📌 [DEBUG] onAppear: userLocationCity = \(weatherViewModel.userLocationCity?.name ?? "nil")")
+               print("📌 [DEBUG] onAppear: selectedCityWeather = \(weatherViewModel.selectedCityWeather.0?.weatherData.values.temperature ?? -999)°C")
+               print("📌 [DEBUG] onAppear: userLocationWeather = \(weatherViewModel.userLocationWeather.0?.weatherData.values.temperature ?? -999)°C")
             
-            guard let selectedCity = weatherViewModel.selectedCity else {
-                print("⚠️ selectedCity пуст, пропускаем загрузку данных.")
-                return
-            }
+            loadWeatherIfNeeded(for: city)
             
-            print("📡 CityWeatherView отображается для \(selectedCity.name)")
-            print("🌦 Текущая погода: \(weatherData.0?.weatherData.values.temperature ?? -999)°C")
-            
-            print("🌍 localHour передаётся в WeatherBackground: \(weatherViewModel.localHour)")
-            
-            if weatherViewModel.isLoading {
-                print("⏳ Данные уже загружаются, пропускаем.")
-                return
-            }
-            // Получаем сохранённые данные для города
-            let storedWeatherData = persistence.getWeatherData(for: city.toCity())
-            
-            // Если данные уже есть и они актуальны, ничего не делаем
-            if let realtime = storedWeatherData.0,
-               let daily = storedWeatherData.1,
-               let hourly = storedWeatherData.2 {
-                print("✅ Данные для \(city.name) уже актуальны, загружать не нужно.")
-                print("🔍 Проверяем кеш для \(city.name): \(realtime)")
-                return
-            }
-            
-            print("📌 Данные для \(city.name) отсутствуют или устарели, загружаем...")
-            weatherViewModel.isLoading = true               // Загружаем погоду только если её нет
-            
-            Task {
-                await weatherViewModel.fetchWeatherData(for: city.toCity())
-                
-                if let realtime = weatherViewModel.currentWeather,
-                   let daily = weatherViewModel.forecast,
-                   let hourly = weatherViewModel.hourlyForecast {
-                    persistence.saveWeatherData(for: city.toCity(), realtime: realtime, daily: daily, hourly: hourly)
-                }
-                
-                
-                
-            }
-            
-            weatherViewModel.isLoading = false
-            
+//            let cachedData = persistence.getWeatherData(for: city.toCity())
+//            if cachedData.0 != nil {
+//                weatherData = cachedData
+//                print("✅ Обновлена погода из кеша для \(city.name)")
+//            }
         }
-        
-        .modifier(WeatherBackground(condition: weatherDescription, localHour: $weatherViewModel.localHour)
-        )
-        
-        
-        
-        
-        
-        
+//        .onReceive(weatherViewModel.$selectedCityWeather) { newWeatherData in
+//            if city.id == weatherViewModel.selectedCity?.id {
+//                self.weatherData = newWeatherData
+//                print("🔄 selectedCityWeather обновлено: \(newWeatherData.0?.weatherData.values.temperature ?? -999)°C")
+//            }
+//        }
+
+        .modifier(WeatherBackground(condition: weatherDescription, localHour: Binding(
+            get: { weatherViewModel.localHour ?? 12 },
+            set: { weatherViewModel.localHour = $0 }
+        )))
     }
     
-    
-    
+//    private func loadWeatherIfNeeded(for city: PersistentCity) {
+//        print("🌍 Checking weather for \(city.name)")
+//        
+//        if persistence.hasWeatherData(for: city) {
+//            print("✅ Weather data is cached, no need to fetch")
+//            return
+//        }
+//        
+//        print("🌨️ Fetching weather for \(city.name)...")
+//        
+//        Task {
+//            let isUserLocation = city.id == weatherViewModel.userLocationCity?.id
+//            
+//            do {
+//                
+//                print("📍 Загружаем погоду для \(city.name), координаты: \(city.latitude), \(city.longitude)")
+//
+//                try await weatherViewModel.fetchWeather(for: city.toCity(), isUserLocation: isUserLocation)
+//                
+//                DispatchQueue.main.async {
+//                    self.weatherData = isUserLocation ? self.weatherViewModel.userLocationWeather : self.weatherViewModel.selectedCityWeather
+//                }
+//            } catch WeatherError.tooManyRequests {
+//                print("🚨 Превышен лимит API, попробуйте позже.")
+//            } catch {
+//                print("❌ Ошибка загрузки погоды: \(error)")
+//            }
+//        }
+//    }
+    private func loadWeatherIfNeeded(for city: PersistentCity) {
+        print("🌍 Checking weather for \(city.name)")
+        
+        let cachedData = persistence.getWeatherData(for: city.toCity())
+
+        if let cachedRealtime = cachedData.0 {
+            // 🟢 Проверяем, есть ли у тебя `time` в данных
+            let lastUpdate = cachedRealtime.weatherData.time
+            let currentTime = Date()
+
+            let cacheValidity: TimeInterval = 3 * 3600 // 3 часа
+
+            if currentTime.timeIntervalSince(lastUpdate) < cacheValidity {
+                print("✅ Используем кешированные данные для \(city.name)")
+                weatherData = cachedData
+                return
+            } else {
+                print("⚠️ Кешированные данные устарели для \(city.name), обновляем...")
+            }
+        } else {
+            print("❌ Кешированные данные отсутствуют, загружаем...")
+        }
+
+        print("🌨️ Fetching weather for \(city.name)...")
+
+        Task {
+            let isUserLocation = city.id == weatherViewModel.userLocationCity?.id
+
+            do {
+                print("📍 Загружаем погоду для \(city.name), координаты: \(city.latitude), \(city.longitude)")
+
+                try await weatherViewModel.fetchWeather(for: city.toCity(), isUserLocation: isUserLocation)
+
+                DispatchQueue.main.async {
+                    self.weatherData = isUserLocation ? self.weatherViewModel.userLocationWeather : self.weatherViewModel.selectedCityWeather
+                }
+            } catch WeatherError.tooManyRequests {
+                print("🚨 Превышен лимит API, попробуйте позже.")
+            } catch {
+                print("❌ Ошибка загрузки погоды: \(error)")
+            }
+        }
+    }
+
 }
 
-//
-//#Preview {
-//    let weatherViewModel = WeatherViewModel(locationManager: LocationManager())
-//    let persistence = Persistence()
-//    let citySearchViewModel = CitySearchViewModel(weatherViewModel: weatherViewModel, persistence: persistence)
-//
-//    CityWeatherView(weatherViewModel: weatherViewModel, city: PersistentCity(id: 1, name: "Moscow", country: "Russia", latitude: 55.7558, longitude: 37.6173) ) //
-//        .environmentObject(persistence)
-//        .environmentObject(citySearchViewModel)
-//}

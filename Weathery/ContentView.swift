@@ -15,6 +15,8 @@ struct ContentView: View {
     @EnvironmentObject private var persistence: Persistence
     @EnvironmentObject private var citySearchViewModel: CitySearchViewModel
     @EnvironmentObject private var weatherViewModel: WeatherViewModel
+    @EnvironmentObject var selectedCityIndexStore: SelectedCityIndexStore
+    
     
     @State private var selectedTab: Int = 0
     
@@ -24,24 +26,12 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             VStack {
                 
-                if let errorMessage = weatherViewModel.locationError {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                } else if weatherViewModel.currentWeather != nil,
-                          weatherViewModel.forecast != nil,
-                          weatherViewModel.hourlyForecast != nil {
-                    
-                    WeatherContentView(selectedTab: $selectedTab)
-                        .environmentObject(citySearchViewModel)
-                        .environmentObject(weatherViewModel)
-                        .environmentObject(persistence)
-                    
-                    
-                } else {
-                    ProgressView("Loading Weather Data...")
-                }
+                
+                WeatherContentView(selectedTab: $selectedTab)
+                    .environmentObject(citySearchViewModel)
+                    .environmentObject(weatherViewModel)
+                    .environmentObject(persistence)
+                    .environmentObject(selectedCityIndexStore)
                 
             }
             .tabItem {
@@ -67,43 +57,11 @@ struct ContentView: View {
         }
         .edgesIgnoringSafeArea(.bottom)
         
-//        
-//        .onReceive(weatherViewModel.$selectedCity) { newCity in
-//            
-//            let cityName = newCity?.name ?? "nil"
-//            
-//            print("🔄 onReceive сработал для города: weatherViewModel.$selectedCity \(cityName)")
-//            
-//            guard let newCity = newCity else {
-//                print("⚠️ selectedCity обновился,weatherViewModel.$selectedCity но всё ещё nil")
-//                return
-//            }
-//                        
-//            print("🌍 Загружаем погоду для: \(newCity.name)")
-//            Task {
-//                await weatherViewModel.fetchWeatherData(for: newCity)
-//            }
-//            
-//        }
-//        .onReceive(weatherViewModel.$userLocationCity) { newCity in
-//            
-//            let cityName = newCity?.name ?? "nil"
-//                 
-//            print("🔄 onReceive сработал для weatherViewModel.$userLocationCity города: \(cityName)")
-//            
-//            guard let newCity = newCity else {
-//                print("⚠️ selectedCity обновился  weatherViewModel.$userLocationCity, но всё ещё nil")
-//                return
-//            }
-// 
-//            print("🌍 Загружаем погоду для: weatherViewModel.$userLocationCity \(newCity.name)")
-//            Task {
-//                await weatherViewModel.fetchWeatherData(for: newCity)
-//            }
-//            
-//        }
         
         .onAppear {
+            print("🟢 ContentView appeared: selectedCity = \(weatherViewModel.selectedCity?.name ?? "nil")")
+            print("🟢 ContentView appeared: locationCity = \(weatherViewModel.userLocationCity?.name ?? "nil")")
+            
             print("📍 ContentView запрашивает requestLocation()")
             weatherViewModel.requestLocation()
         }
@@ -118,9 +76,11 @@ struct ContentView: View {
     let locationManager = LocationManager()
     let weatherViewModel = WeatherViewModel(persistence: persistence, locationManager: locationManager)
     let citySearchViewModel = CitySearchViewModel(weatherViewModel: weatherViewModel, persistence: persistence)
+    let selectedCityIndexStore = SelectedCityIndexStore()
     
     return ContentView()
         .environmentObject(persistence)
         .environmentObject(weatherViewModel)
         .environmentObject(citySearchViewModel)
+        .environmentObject(selectedCityIndexStore)
 }

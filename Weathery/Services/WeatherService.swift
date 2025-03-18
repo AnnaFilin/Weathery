@@ -6,6 +6,14 @@
 //
 //
 //import Foundation
+
+enum WeatherError: Error {
+    case tooManyRequests
+    case decodingFailed
+    case networkError
+    case unknown
+}
+
 //
 //struct WeatherService: WeatherServiceProtocol {
 //    private let apiKey = Config.apiKey
@@ -153,106 +161,48 @@ struct WeatherService: WeatherServiceProtocol {
         return try await fetchData(from: request)
     }
 
-    /// Performs the actual data request
-    private func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
-        let (data, _) = try await URLSession.shared.data(for: request)
-//        print("Received JSON: \(String(data: data, encoding: .utf8) ?? "Invalid JSON")")
-        let rawJSON = String(data: data, encoding: .utf8) ?? "Invalid JSON"
-//        print("📡 API response (raw JSON): \(rawJSON)")
-        
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .iso8601
+    private func fetchData<T: Decodable>(from request: URLRequest, retryCount: Int = 3) async throws -> T {
+        var attempt = 0
+        let maxRetries = retryCount
 
-        do {
-            print("✅ Successfully decoded data!")
+        while attempt <= maxRetries {
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
 
-            return try decoder.decode(T.self, from: data)
-        } catch {
-            print("Decoding error: \(error)")
-            throw error
+                // Проверяем HTTP-статус код
+                if let httpResponse = response as? HTTPURLResponse {
+                    if httpResponse.statusCode == 429 {
+                        let waitTime: TimeInterval = pow(2.0, Double(attempt)) // Экспоненциальная задержка: 1, 2, 4 сек и т.д.
+                        print("⚠️ API rate limit reached (429). Retrying in \(waitTime) sec... Attempt \(attempt + 1) / \(maxRetries)")
+
+                        if attempt == maxRetries {
+                            throw WeatherError.tooManyRequests
+                        }
+
+                        try await Task.sleep(nanoseconds: UInt64(waitTime * 1_000_000_000)) // Ждём перед повтором
+                        attempt += 1
+                        continue
+                    }
+                }
+
+                // Если статус-код не 429, пробуем декодировать ответ
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                let decodedData = try decoder.decode(T.self, from: data)
+                return decodedData
+
+            } catch {
+                if attempt == maxRetries {
+                    throw error
+                }
+
+                print("🔄 Ошибка сети: \(error.localizedDescription). Повторная попытка \(attempt + 1) / \(maxRetries)")
+                attempt += 1
+            }
         }
+
+        throw WeatherError.unknown
     }
+
 }
 
-//
-//import Foundation
-//
-//struct WeatherService: WeatherServiceProtocol {
-//    private let apiKey = Config.apiKey
-//    private let baseURL = "https://api.tomorrow.io/v4/weather/"
-//
-//    /// Получение текущей погоды
-//    func fetchCurrentWeather(lat: Double, lon: Double) async throws -> RealtimeWeatherResponse {
-//        return try await fetchWeatherData(endpoint: "realtime", lat: lat, lon: lon)
-//    }
-//
-//    /// Получение прогноза на несколько дней
-//    func fetchDailyForecast(lat: Double, lon: Double) async throws -> DailyForecastResponse {
-//        return try await fetchWeatherData(endpoint: "forecast", lat: lat, lon: lon, additionalParams: [
-//            URLQueryItem(name: "timesteps", value: "1d")
-//        ])
-//    }
-//
-//    /// Получение почасового прогноза
-//    func fetchHourlyForecast(lat: Double, lon: Double) async throws -> HourlyForecastResponse {
-//        return try await fetchWeatherData(endpoint: "forecast", lat: lat, lon: lon, additionalParams: [
-//            URLQueryItem(name: "timesteps", value: "1h")
-//        ])
-//    }
-//
-//    /// Универсальная функция для получения данных
-//    private func fetchWeatherData<T: Decodable>(endpoint: String, lat: Double, lon: Double, additionalParams: [URLQueryItem] = []) async throws -> T {
-//        
-//        print("🔗 Вызван fetchWeatherData для: \(endpoint) (\(lat), \(lon))")
-//
-//        let url = URL(string: "\(baseURL)\(endpoint)")!
-//        var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
-//        
-//        // Основные параметры запроса
-//        var queryItems: [URLQueryItem] = [
-//            URLQueryItem(name: "location", value: "\(lat),\(lon)"),
-//            URLQueryItem(name: "apikey", value: apiKey)
-//        ]
-//        
-//        // Добавляем дополнительные параметры, если они есть
-//        queryItems.append(contentsOf: additionalParams)
-//        components.queryItems = queryItems
-//        
-//        print("🔗 Запрос: \(components.url!.absoluteString)")
-//
-//        
-//        var request = URLRequest(url: components.url!)
-//        request.httpMethod = "GET"
-//        request.timeoutInterval = 10
-//        request.allHTTPHeaderFields = [
-//            "accept": "application/json",
-//            "accept-encoding": "deflate, gzip, br"
-//        ]
-//
-//        return try await fetchData(from: request)
-//    }
-//
-//    /// Функция запроса данных
-//    private func fetchData<T: Decodable>(from request: URLRequest) async throws -> T {
-//        let (data, _) = try await URLSession.shared.data(for: request)
-////        print("Received JSON: \(String(data: data, encoding: .utf8) ?? "Invalid JSON")")
-//        let rawJSON = String(data: data, encoding: .utf8) ?? "Invalid JSON"
-////        print("📡 Ответ API (сырой JSON): \(rawJSON)")
-//        
-//        let decoder = JSONDecoder()
-//        decoder.keyDecodingStrategy = .convertFromSnakeCase
-//        decoder.dateDecodingStrategy = .iso8601
-//
-//        do {
-//            print("✅ Успешно decoder.decode данные!")
-//
-//            return try decoder.decode(T.self, from: data)
-//        } catch {
-//            print("Decoding error: \(error)")
-//            throw error
-//        }
-//    }
-//    
-//   
-//}

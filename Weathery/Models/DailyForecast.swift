@@ -11,11 +11,15 @@ struct DailyForecastResponse: Codable {
     let timelines: DailyTimelines
     let location: Location
     
-    static let exampleDailyForecast: DailyForecastResponse = Bundle.main.decode("MockDailyForecast.json")
+    static let exampleDailyForecast: DailyForecastResponse? = Bundle.main.decode("MockDailyForecast.json")
    
     static var exampleDaily: [Daily] {
-        return exampleDailyForecast.timelines.daily
-       }
+        if let hourlyForecast = exampleDailyForecast {
+            return hourlyForecast.timelines.daily
+        }
+        return [] // Возвращаем пустой массив, если данные отсутствуют
+    }
+
     
     static var exampleDayForecast: Daily? {
         return exampleDaily.first 
@@ -84,4 +88,8 @@ extension Daily {
             let now = Date()
             return (sunrise...sunset).contains(now)
         }
+}
+
+extension DailyForecastResponse {
+    static let mock = DailyForecastResponse(timelines: DailyTimelines(daily: []),  location: Location(latitude: 0.0, longitude: 0.0, name: "Mock Location", type: "Mock"))
 }

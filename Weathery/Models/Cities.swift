@@ -13,7 +13,7 @@ struct CityResponse: Codable {
     let links: [Link]?
     let metadata: Metadata?
     
-    static let citiesExampleResponse: CityResponse = Bundle.main.decode("MockCities.json")
+    static let citiesExampleResponse: CityResponse? = Bundle.main.decode("MockCities.json")
 }
 
 struct City: Codable, Identifiable, Equatable, Hashable {

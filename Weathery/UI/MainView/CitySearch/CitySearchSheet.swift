@@ -5,95 +5,72 @@
 //  Created by Anna Filin on 26/02/2025.
 //
 
+//import SwiftUI
+
+
 import SwiftUI
 
 struct CitySearchSheet: View {
+    @EnvironmentObject var selectedCityIndexStore: SelectedCityIndexStore
+    
     @EnvironmentObject var persistence: Persistence
-    @EnvironmentObject var weatherViewModel: WeatherViewModel 
-    @ObservedObject var viewModel: CitySearchViewModel  // ✅ Изменил на ObservedObject
+    @EnvironmentObject var weatherViewModel: WeatherViewModel
+    @EnvironmentObject var viewModel: CitySearchViewModel
     
-    
-    //    @Binding var showCitySearch: Bool
-    @Binding var showToast: Bool  // Теперь это биндинг
-    @Binding var selectedCity: City?
-    @Binding var favoritedCities: Set<PersistentCity>  // ✅ Передаём копию избранных городов
+    @Binding var showToast: Bool  // ✅ Now it's a binding
+    @Binding var favoritedCities: Set<PersistentCity>  // ✅ Passing a copy of favorite cities
     
     var body: some View {
         ZStack {
             ScrollView {
                 VStack {
-                    
-                    
-                    ForEach(viewModel.cities, id: \.id) { city in
+                    ForEach(viewModel.cities, id: \.self) { city in
                         HStack {
-                            
                             Text("\(city.name), \(city.country)")
                             
                             Spacer()
                             Button(action: {
-                                
                                 let persistentCity = PersistentCity(from: city)
                                 
                                 if persistence.favoritedCities.contains(persistentCity) {
                                     persistence.removeFromFavorites(persistentCity)
                                 } else {
                                     persistence.addToFavorites(persistentCity)
-                                    
                                 }
                             }) {
                                 Image(systemName: persistence.favoritedCities.contains(PersistentCity(from: city)) ? "star.fill" : "star")
                                     .foregroundColor(.yellow)
                             }
-                            
                             .buttonStyle(.plain)
                         }
-                        
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        //
                         .onTapGesture {
-                            print("✅ Город выбран: \(city.name)")
-                            selectedCity = city
+                            print("✅ City selected: \(city.name)")
+                            weatherViewModel.selectedCity = city  // ✅ Просто передаём в модель
                             
-                            Task {
-                                await weatherViewModel.fetchWeatherData(for: city)
+                            DispatchQueue.main.async {
+                                if !persistence.favoritedCities.contains(where: { $0.id == city.id }) {
+                                }
+                                print("⚠️ Перед обновлением: \(selectedCityIndexStore.selectedCityIndex)")
+                                
+                                // 🔄 Обновляем индекс на **новое место** города в списке
+                                if let index = Array(persistence.favoritedCities).firstIndex(where: { $0.id == city.id }) {
+                                    DispatchQueue.main.async {
+                                        selectedCityIndexStore.selectedCityIndex = index
+                                        print("🔄 selectedCityIndex обновлён: \(selectedCityIndexStore.selectedCityIndex)")
+                                    }
+                                }
                             }
                         }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
                     }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
                 }
-                
             }
-            
             ToastView(toastText: "Added to favorites", showToast: $showToast)
         }
-        
         .padding(.horizontal)
-        
-//        .onChange(of: weatherViewModel.showCitySearch) { oldValue, newValue in
-//            print("🔄 showCitySearch изменился: \(newValue)")
-//        }
-//        
-//        .onAppear {
-//            print("🔄 CitySearchSheet перерисовался (showCitySearch: \(weatherViewModel.showCitySearch))")
-//            print("📌 CitySearchSheet открыт")
-//              weatherViewModel.showCitySearch = true // ✅ Форсим, чтобы не сбрасывалось
-//        }
-//
-//        .onDisappear {
-//            print("🚨 CitySearchSheet закрывается! showCitySearch: \(weatherViewModel.showCitySearch)")
-//            
-//            if weatherViewModel.showCitySearch {
-//                print("🚨 Ошибка! showCitySearch не должен быть false, форсим обратно")
-//                DispatchQueue.main.async {
-//                    weatherViewModel.showCitySearch = true
-//                }
-//            }
-//        }
     }
-    
 }
-
-//#Preview {
-//    CitySearchSheet()
-//}

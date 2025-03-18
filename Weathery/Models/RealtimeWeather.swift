@@ -16,7 +16,7 @@ struct RealtimeWeatherResponse: Codable {
         case location
     }
     
-    static let example: RealtimeWeatherResponse = Bundle.main.decode("MockRealtimeWeather.json")
+    static let example: RealtimeWeatherResponse? = Bundle.main.decode("MockRealtimeWeather.json")
 }
 
 struct WeatherData: Codable {

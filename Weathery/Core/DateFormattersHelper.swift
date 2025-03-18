@@ -27,19 +27,27 @@ func formatTime(date: Date) -> String {
     return dateFormatter.string(from: date)
 }
 
+//
+//func getTimeZone(for latitude: Double, longitude: Double) async -> TimeZone? {
+//    let location = CLLocation(latitude: latitude, longitude: longitude)
+//    let geocoder = CLGeocoder()
+//
+//    do {
+//        let placemarks = try await geocoder.reverseGeocodeLocation(location)
+//        return placemarks.first?.timeZone
+//    } catch {
+//        print("Ошибка при получении часового пояса: \(error.localizedDescription)")
+//        return nil
+//    }
+//}
 
 func getTimeZone(for latitude: Double, longitude: Double) async -> TimeZone? {
-    let location = CLLocation(latitude: latitude, longitude: longitude)
-    let geocoder = CLGeocoder()
-
-    do {
-        let placemarks = try await geocoder.reverseGeocodeLocation(location)
-        return placemarks.first?.timeZone
-    } catch {
-        print("Ошибка при получении часового пояса: \(error.localizedDescription)")
-        return nil
-    }
+    print("🌍 Получаем таймзону для \(latitude), \(longitude)")
+    let timeZone = TimeZone(secondsFromGMT: Int(longitude * 3600 / 15)) // Пример!
+    print("✅ Таймзона: \(timeZone?.identifier ?? "❌ не найдена")")
+    return timeZone
 }
+
 
 func convertToLocalTime(_ utcDate: Date, latitude: Double, longitude: Double) async -> String {
     let formatter = DateFormatter()

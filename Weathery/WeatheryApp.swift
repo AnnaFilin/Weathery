@@ -14,6 +14,7 @@ struct WeatheryApp: App {
        @StateObject private var locationManager = LocationManager() // ✅ Создаём 1 раз
        @StateObject private var weatherViewModel: WeatherViewModel
        @StateObject private var citySearchViewModel: CitySearchViewModel
+    @StateObject var selectedCityIndexStore = SelectedCityIndexStore()
     
     init() {
         let persistenceInstance = Persistence()
@@ -35,6 +36,7 @@ struct WeatheryApp: App {
                                .environmentObject(locationManager) // ✅ Передаём
                                .environmentObject(citySearchViewModel)
                                .environmentObject(weatherViewModel)
+                               .environmentObject(selectedCityIndexStore) 
                                .background(.clear)
         }
     }

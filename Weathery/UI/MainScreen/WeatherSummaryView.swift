@@ -5,12 +5,22 @@
 //  Created by Anna Filin on 26/02/2025.
 //
 
+//import SwiftUI
+
+//
+//  WeatherSummaryView.swift
+//  Weathery
+//
+//  Created by Anna Filin on 26/02/2025.
+//
+
 import SwiftUI
 
 struct WeatherSummaryView: View {
     @EnvironmentObject var persistence: Persistence
     @EnvironmentObject var viewModel: CitySearchViewModel
     @EnvironmentObject var weatherViewModel: WeatherViewModel
+    @EnvironmentObject var selectedCityIndexStore: SelectedCityIndexStore
     
     
     var city: City
@@ -24,16 +34,13 @@ struct WeatherSummaryView: View {
     @State private var isSearchPresented: Bool = false
     
     @State private var localTime: String = "Loading..."
-
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                
-                Text("\(city.name ),")
+                Text("\(city.name),")
                     .font(.largeTitle)
                     .bold()
-//                    .id(UUID())
                 
                 Button(action: {
                     isSearchPresented = true
@@ -41,7 +48,6 @@ struct WeatherSummaryView: View {
                     Text("Select a city")
                         .foregroundColor(.blue)
                 }
-                
             }
             
             HStack {
@@ -50,32 +56,12 @@ struct WeatherSummaryView: View {
                     .bold()
                 Text(formattedDate)
                 
-
                 Text(currentWeather.weatherData.time, formatter: DateFormatter.timeWithMinutes)
                     .font(.subheadline)
             }
             
-//            VStack {
-//                Text("API Time: \(currentWeather.weatherData.time)")
-//                
-//                    .foregroundColor(.red)
-//                Text("Local Time: \(localTime)")
-//                            .foregroundColor(.green)
-//                            .onAppear {
-//                                Task {
-//                                    localTime = await convertToLocalTime(
-//                                        currentWeather.weatherData.time,
-//                                        latitude: city.latitude,
-//                                        longitude: city.longitude
-//                                    )
-//                                    print("🟢 WeatherSummaryView: localTime = \(localTime)")
-//
-//                                }
-//                            }
-//            }
-            
             CurrentTemperatureView(
-                temperature: currentWeather.weatherData.values.temperature ,
+                temperature: currentWeather.weatherData.values.temperature,
                 feelsLikeTemperature: currentWeather.weatherData.values.temperatureApparent
             )
             
@@ -83,30 +69,25 @@ struct WeatherSummaryView: View {
                 Text(weatherEaster)
             }
             
-            WeatherMoodView(weatherCode:currentWeather.weatherData.values.weatherCode )
+            WeatherMoodView(weatherCode: currentWeather.weatherData.values.weatherCode)
             
             Text(weatherDescription)
                 .font(AppTypography.description)
             
             Image(weatherIcon)
                 .font(.system(size: 40))
-            
-            
         }
         .background(Color.clear)
         .zIndex(1)
         .padding(.horizontal, AppSpacing.horizontal)
-        .sheet(isPresented: $isSearchPresented) {  // ✅ Показываем `CitySearchView`
+        .sheet(isPresented: $isSearchPresented) {  // ✅ Shows `CitySearchView`
             CitySearchView(selectedTab: $selectedTab)
                 .environmentObject(weatherViewModel)
                 .environmentObject(persistence)
                 .environmentObject(viewModel)
+                .environmentObject(selectedCityIndexStore)
         }
     }
-    
-   
-
-
 }
 
 //#Preview {

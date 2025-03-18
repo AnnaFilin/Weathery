@@ -63,6 +63,6 @@ struct ForecastView: View {
 }
 
 #Preview {
-    ForecastView(forecast: .exampleDailyForecast,  selectedDay: .constant(nil), // ✅ Передаём пустой `Binding`
+    ForecastView(forecast: .exampleDailyForecast ?? DailyForecastResponse.mock,  selectedDay: .constant(nil), // ✅ Передаём пустой `Binding`
                  showSheet: .constant(false), selectedForecastType: .constant(nil) )
 }

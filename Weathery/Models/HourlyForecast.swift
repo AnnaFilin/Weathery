@@ -137,11 +137,15 @@ import Foundation
 struct HourlyForecastResponse: Codable {
     let timelines: HourlyTimelines
     
-    static let exampleHourlyForecast: HourlyForecastResponse = Bundle.main.decode("MockHourlyForecast.json")
+    static let exampleHourlyForecast: HourlyForecastResponse? = Bundle.main.decode("MockHourlyForecast.json")
    
     static var exampleHourly: [Hourly] {
-           return exampleHourlyForecast.timelines.hourly
-       }
+        if let hourlyForecast = exampleHourlyForecast {
+            return hourlyForecast.timelines.hourly
+        }
+        return [] // Возвращаем пустой массив, если данные отсутствуют
+    }
+
 }
 
 struct HourlyTimelines: Codable {
