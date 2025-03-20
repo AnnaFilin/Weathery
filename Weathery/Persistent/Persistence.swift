@@ -243,6 +243,7 @@ class Persistence: ObservableObject {
     }
     
     func getWeatherData(for city: City) -> (RealtimeWeatherResponse?, DailyForecastResponse?, HourlyForecastResponse?) {
+        print("🔍 Проверяем данные для \(city.name) в `weatherData`")
         if let entry = weatherData[city.id] { // ✅ Use an object instead of a tuple
             print("📍 Found weather data for \(city.name): Temperature \(entry.realtime.weatherData.values.temperature)°C")
             

@@ -13,24 +13,36 @@ import CoreLocation
 
 @MainActor
 class WeatherViewModel: ObservableObject {
-    @Published var location: CLLocationCoordinate2D?
+//    @Published var location: CLLocationCoordinate2D?
+    @Published var location: CLLocationCoordinate2D? {
+        didSet {
+            print("📍 [WeatherViewModel] Coordinates updated: \(String(describing: location))")
+            
+            guard let location = location, userLocationCity == nil else {
+                print("📍 [DEBUG] Локация обновлена, но город уже есть: \(userLocationCity?.name ?? "nil")")
+                return
+            }
+
+            Task {
+                if let city = await fetchCityForLocation(location) {
+                    print("📍 [DEBUG] Геолокация определена, загружаем погоду для \(city.name)")
+                    DispatchQueue.main.async {
+                        self.userLocationCity = city
+                    }
+                } else {
+                    print("⚠️ [DEBUG] Не удалось определить город по координатам!")
+                }
+            }
+        }
+    }
+
     
     @Published var selectedCity: City? {
         didSet {
             guard let selectedCity = selectedCity else { return }
             print("🟡 [WeatherViewModel] selectedCity изменён: \(selectedCity.name)")
             
-            Task {
-                do {
-                    print("📍 Загружаем погоду для \(selectedCity.name), координаты: \(selectedCity.latitude), \(selectedCity.longitude)")
 
-                    try await self.fetchWeather(for: selectedCity, isUserLocation: false)
-                } catch {
-                    print("❌ Ошибка загрузки погоды: \(error)")
-                }
-            }
-
-            
         }
     }
     
@@ -87,43 +99,26 @@ class WeatherViewModel: ObservableObject {
         print("🆕 WeatherViewModel created!")
            print("🟢 Используется WeatherService: \(weatherService)")
            print("🟢 Используется CitySearchService: \(cityService)")
-        print("🆕 WeatherViewModel created (determined by geolocation)")
-    
-        
-        
         
         locationManager.$location
+            .compactMap { $0 }  // Убираем nil
             .sink { [weak self] newLocation in
                 guard let self = self else { return }
-                print("📌 [WeatherViewModel] Coordinates received: \(String(describing: newLocation))")
-
-                self.location = newLocation // ✅ Обновляем `location`
-                
-                Task {
-                    if let city = await self.fetchCityForLocation(newLocation) {
-                        print("📍 [DEBUG] Геолокация определена, загружаем погоду для \(city.name)")
-                        DispatchQueue.main.async {
-                            self.userLocationCity = city // ✅ Обновляем userLocationCity, но НЕ трогаем selectedCity
-                        }
- 
-                    }
-                }
+                print("📌 [WeatherViewModel] Получены координаты: \(newLocation.latitude), \(newLocation.longitude)")
+                self.location = newLocation  // 📍 Обновляем `location`, которая триггерит `didSet`
             }
             .store(in: &cancellables)
-        
-        
-        
-        
+
     }
     
     func requestLocation() {
-        if let currentLocation = locationManager.location {
-            print("✅ Location already obtained: \(currentLocation.latitude), \(currentLocation.longitude)")
-            return
-        }
-        
-        print("📍 Location request executed")
-        locationManager.requestLocation()
+        if let currentLocation = locationManager.location, self.location != nil {
+               print("✅ Location already obtained: \(currentLocation.latitude), \(currentLocation.longitude)")
+               return
+           }
+
+           print("📍 Location request executed")
+           locationManager.requestLocation()
     }
     
     func fetchCityForLocation(_ location: CLLocationCoordinate2D?) async -> City? {
@@ -154,70 +149,68 @@ class WeatherViewModel: ObservableObject {
     
 
 
-    func fetchWeather(for city: City, isUserLocation: Bool) async throws {
-        if isFetchingWeather {
-              print("⏳ Уже выполняется запрос погоды для \(city.name), отменяем новый запрос.")
-              return
-          }
-        
-     
+//    func fetchWeather(for city: City, isUserLocation: Bool) async throws {
+//        if isFetchingWeather {
+//              print("⏳ Уже выполняется запрос погоды для \(city.name), отменяем новый запрос.")
+//              return
+//          }
+//          isFetchingWeather = true
+//          defer { isFetchingWeather = false } // Разблокируем после завершения
+//        
+//        print("🌍 [DEBUG] Начинаем загрузку погоды для \(city.name). isUserLocation = \(isUserLocation)")
+//
+//        do {
+//            let realtime = try await weatherService.fetchCurrentWeather(lat: city.latitude, lon: city.longitude)
+//            let daily = try await weatherService.fetchDailyForecast(lat: city.latitude, lon: city.longitude)
+//            let hourly = try await weatherService.fetchHourlyForecast(lat: city.latitude, lon: city.longitude)
+//
+//            // Проверка на NaN перед обновлением данных
+//            if realtime.weatherData.values.temperature.isNaN {
+//                print("⚠️ Ошибка: нет данных о температуре! Используем старые данные.")
+//                return
+//            }
+//
+//            print("📌 [DEBUG] fetchWeather: isUserLocation = \(isUserLocation), city = \(city.name)")
+//
+//            if isUserLocation {
+//                
+//                
+//                print("📌 [DEBUG] Готовимся обновлять userLocationWeather")
+//
+//
+//                if realtime.weatherData.values.temperature == -999.0 {
+//                    print("🚨 [ERROR] API вернул -999.0°C! Данные невалидные.")
+//                }
+//
+//                self.userLocationWeather = (realtime, daily, hourly)
+//
+//                print("✅ [DEBUG] userLocationWeather обновлён: \(self.userLocationWeather.0?.weatherData.values.temperature ?? -999)°C")
+//            } else {
+//                print("🔵 [DEBUG] Обновляем selectedCityWeather: \(String(describing: realtime.weatherData.values.temperature))")
+//                self.selectedCityWeather = (realtime, daily, hourly)
+//                print("🌡 selectedCityWeather обновлено для \(self.selectedCity?.name ?? "nil"): \(self.selectedCityWeather.0?.weatherData.values.temperature ?? -999)°C")
+//            }
+//
+//            print("✅ Реальные данные загружены для \(city.name)")
+//
+//            Task {
+//                await self.updateLocalHour()
+//            }
+//
+//        } catch WeatherError.tooManyRequests {
+//            print("🚨 Превышен лимит API для \(city.name), попробуйте позже.")
+//            self.apiLimitReached = true
+////            await loadMockWeatherData(for: city, isUserLocation: isUserLocation)
+//        } catch {
+//            print("❌ Ошибка загрузки погоды для \(city.name): \(error)")
+////            await loadMockWeatherData(for: city, isUserLocation: isUserLocation)
+//        }
+//    }
 
-          isFetchingWeather = true
-          defer { isFetchingWeather = false } // Разблокируем после завершения
-        
-        print("🌍 [DEBUG] Начинаем загрузку погоды для \(city.name). isUserLocation = \(isUserLocation)")
-
-        do {
-            let realtime = try await weatherService.fetchCurrentWeather(lat: city.latitude, lon: city.longitude)
-            let daily = try await weatherService.fetchDailyForecast(lat: city.latitude, lon: city.longitude)
-            let hourly = try await weatherService.fetchHourlyForecast(lat: city.latitude, lon: city.longitude)
-
-            // Проверка на NaN перед обновлением данных
-            if realtime.weatherData.values.temperature.isNaN {
-                print("⚠️ Ошибка: нет данных о температуре! Используем старые данные.")
-                return
-            }
-
-            print("📌 [DEBUG] fetchWeather: isUserLocation = \(isUserLocation), city = \(city.name)")
-
-            if isUserLocation {
-                
-                
-                print("📌 [DEBUG] Готовимся обновлять userLocationWeather")
-//                print("🔍 [DEBUG] realtime.weatherData: \(realtime.weatherData)")
-//                print("🔍 [DEBUG] daily.weatherData: \(String(describing: daily.timelines.daily[0].values.temperatureMin))")
-//                print("🔍 [DEBUG] hourly.weatherData: \(String(describing: hourly.timelines.hourly[0].values.temperatureApparent))")
-
-                if realtime.weatherData.values.temperature == -999.0 {
-                    print("🚨 [ERROR] API вернул -999.0°C! Данные невалидные.")
-                }
-
-                self.userLocationWeather = (realtime, daily, hourly)
-
-                print("✅ [DEBUG] userLocationWeather обновлён: \(self.userLocationWeather.0?.weatherData.values.temperature ?? -999)°C")
-            } else {
-                print("🔵 [DEBUG] Обновляем selectedCityWeather: \(String(describing: realtime.weatherData.values.temperature))")
-                self.selectedCityWeather = (realtime, daily, hourly)
-                print("🌡 selectedCityWeather обновлено для \(self.selectedCity?.name ?? "nil"): \(self.selectedCityWeather.0?.weatherData.values.temperature ?? -999)°C")
-            }
-
-            print("✅ Реальные данные загружены для \(city.name)")
-
-            Task {
-                await self.updateLocalHour()
-            }
-
-        } catch WeatherError.tooManyRequests {
-            print("🚨 Превышен лимит API для \(city.name), попробуйте позже.")
-            self.apiLimitReached = true
-            await loadMockWeatherData(for: city, isUserLocation: isUserLocation)
-        } catch {
-            print("❌ Ошибка загрузки погоды для \(city.name): \(error)")
-            await loadMockWeatherData(for: city, isUserLocation: isUserLocation)
-        }
+    func fetchWeather(for city: City, isUserLocation: Bool) async {
+        print("🌍 [DEBUG] Начинаем загрузку погоды для \(city.name)... mock")
+        await loadMockWeatherData(for: city)
     }
-
-    
 
     
     @MainActor
@@ -267,49 +260,9 @@ class WeatherViewModel: ObservableObject {
         return localTime
     }
     
-//    
-//    func loadMockWeatherData() async {
-//        if let currentWeather: RealtimeWeatherResponse = Bundle.main.decode("MockRealtimeWeather.json") {
-//            self.selectedCityWeather.0 = currentWeather // ✅ Записываем в `selectedCityWeather`
-//            print("✅ Mock data loaded: currentWeather")
-//            
-//            let utcDate = currentWeather.weatherData.time
-//            print("🕒 UTC from JSON (Date after parsing): \(utcDate)")
-//            
-//            if let city = selectedCity {
-//                Task {
-//                    let localHour = await convertMockTimeToLocalHour(
-//                        utcDate: utcDate,
-//                        latitude: city.latitude,
-//                        longitude: city.longitude
-//                    )
-//                    
-//                    DispatchQueue.main.async {
-//                        self.localHour = localHour
-//                        print("🔄 [loadMockWeatherData] Updating localHour for \(city.name): \(localHour) hours")
-//                        
-//                        // 💥 Force UI update
-//                        self.objectWillChange.send()
-//                    }
-//                }
-//            }
-//            
-//            // ✅ Load the rest of the mock data
-//            if let forecast: DailyForecastResponse = Bundle.main.decode("MockDailyForecast.json") {
-//                self.selectedCityWeather.1 = forecast // ✅ Записываем в `selectedCityWeather`
-//                print("✅ Mock data loaded: forecast")
-//            }
-//            
-//            if let hourly: HourlyForecastResponse = Bundle.main.decode("MockHourlyForecast.json") {
-//                self.selectedCityWeather.2 = hourly // ✅ Записываем в `selectedCityWeather`
-//                print("✅ Mock data loaded: hourlyForecast")
-//            }
-//        } else {
-//            print("❌ Error loading mock data")
-//        }
-//    }
+
     @MainActor
-    func loadMockWeatherData(for city: City, isUserLocation: Bool) async {
+    func loadMockWeatherData(for city: City) async {
         print("🔄 Загружаем мок-данные для \(city.name)...")
         
         guard let realtime: RealtimeWeatherResponse = Bundle.main.decode("MockRealtimeWeather.json"),
@@ -321,15 +274,11 @@ class WeatherViewModel: ObservableObject {
         
         print("✅ Мок-данные загружены для \(city.name)")
 
-        if isUserLocation {
-            self.userLocationWeather = (realtime, daily, hourly)
-            self.userLocationCity = city
-            print("✅ [DEBUG] userLocationWeather обновлён (мок-данные): \(self.userLocationWeather.0?.weatherData.values.temperature ?? -999)°C")
-        } else {
+
             self.selectedCityWeather = (realtime, daily, hourly)
-            self.selectedCity = city
+//            self.selectedCity = city
             print("🌡 selectedCityWeather обновлено (мок-данные) для \(self.selectedCity?.name ?? "nil"): \(self.selectedCityWeather.0?.weatherData.values.temperature ?? -999)°C")
-        }
+//        }
 
         // Обновляем `localHour`
         Task {
@@ -342,6 +291,37 @@ class WeatherViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.localHour = localHour
                 print("🔄 [loadMockWeatherData] Updating localHour for \(city.name): \(localHour) hours")
+                self.objectWillChange.send()
+            }
+        }
+    }
+    
+    
+//    func loadMockUserLocationWeather(for location: CLLocationCoordinate2D) async {
+    func loadMockUserLocationWeather(for city: City) async {
+
+        print("🔄 Загружаем мок-данные для userLocation  ---->   \(city.name)...")
+        
+        guard let realtime: RealtimeWeatherResponse = Bundle.main.decode("MockRealtimeWeather.json"),
+              let daily: DailyForecastResponse = Bundle.main.decode("MockDailyForecast.json"),
+              let hourly: HourlyForecastResponse = Bundle.main.decode("MockHourlyForecast.json") else {
+            print("❌ Ошибка загрузки мок-данных")
+            return
+        }
+        
+        self.userLocationWeather = (realtime, daily, hourly)
+        
+        
+        Task {
+            let localHour = await convertMockTimeToLocalHour(
+                utcDate: realtime.weatherData.time,
+                latitude: city.latitude,
+                longitude: city.longitude
+            )
+            
+            DispatchQueue.main.async {
+                self.localHour = localHour
+                print("🔄 [loadMockWeatherData] Updating localHour for location  \(city.name)...: \(localHour) hours")
                 self.objectWillChange.send()
             }
         }

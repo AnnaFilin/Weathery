@@ -14,7 +14,7 @@ class SelectedCityIndexStore: ObservableObject {
             print("⚠️ [SelectedCityIndexStore] selectedCityIndex изменён! Новое значение: \(selectedCityIndex)")
             
             // Добавляем источник изменения:
-            Thread.callStackSymbols.forEach { print($0) }
+//            Thread.callStackSymbols.forEach { print($0) }
         }
     }
 }

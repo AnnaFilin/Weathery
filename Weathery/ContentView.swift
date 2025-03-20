@@ -64,9 +64,23 @@ struct ContentView: View {
             
             print("🌍 [DEBUG] ContentView onAppear вызван")
             print("📍 ContentView запрашивает requestLocation()")
-            weatherViewModel.requestLocation()
+//            weatherViewModel.requestLocation()
+            if weatherViewModel.location == nil {
+                  print("📍 [DEBUG] Локация отсутствует, запрашиваем")
+                  weatherViewModel.requestLocation()
+              }
         }
-        
+
+        .onChange(of: weatherViewModel.userLocationCity) { oldValue, newUserCity in
+            guard let newUserCity = newUserCity, oldValue?.id != newUserCity.id else { return }
+            print("📍 [DEBUG] userLocationCity обновлён: \(newUserCity.name)")
+            
+            Task {
+                await weatherViewModel.loadMockUserLocationWeather(for: newUserCity)
+            }
+        }
+
+
         
     }
 }

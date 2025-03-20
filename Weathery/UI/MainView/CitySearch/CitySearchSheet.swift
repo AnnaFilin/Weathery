@@ -46,22 +46,49 @@ struct CitySearchSheet: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         //
                         .onTapGesture {
+//                            print("✅ City selected: \(city.name)")
+//                            weatherViewModel.selectedCity = city  // ✅ Просто передаём в модель
+//                            
+//                            DispatchQueue.main.async {
+//                                if !persistence.favoritedCities.contains(where: { $0.id == city.id }) {
+//                                }
+//                                print("⚠️ Перед обновлением: \(selectedCityIndexStore.selectedCityIndex)")
+//                                
+//                                // 🔄 Обновляем индекс на **новое место** города в списке
+//                                if let index = Array(persistence.favoritedCities).firstIndex(where: { $0.id == city.id }) {
+//                                    DispatchQueue.main.async {
+//                                        selectedCityIndexStore.selectedCityIndex = index
+//                                        print("🔄 selectedCityIndex обновлён: \(selectedCityIndexStore.selectedCityIndex)")
+//                                    }
+//                                }
+//                            }
                             print("✅ City selected: \(city.name)")
-                            weatherViewModel.selectedCity = city  // ✅ Просто передаём в модель
-                            
-                            DispatchQueue.main.async {
-                                if !persistence.favoritedCities.contains(where: { $0.id == city.id }) {
-                                }
-                                print("⚠️ Перед обновлением: \(selectedCityIndexStore.selectedCityIndex)")
+                               weatherViewModel.selectedCity = city  // ✅ Просто передаём в модель
+
+                               DispatchQueue.main.async {
+                                   let favoriteCities = Array(persistence.favoritedCities) // Преобразуем Set в Array
+
+                                   print("⚠️ Перед обновлением: \(selectedCityIndexStore.selectedCityIndex)")
+
+                                   // 1️⃣ Если это userLocationCity → ставим индекс 0
+                                   if weatherViewModel.userLocationCity?.id == city.id {
+                                       selectedCityIndexStore.selectedCityIndex = 0
+                                       print("📍 [DEBUG] Выбран userLocationCity, индекс 0")
+                                       return
+                                   }
+
+                                   // 2️⃣ Если город уже **есть в избранных** — просто переходим на его индекс
+                                   if let index = favoriteCities.firstIndex(where: { $0.id == city.id }) {
+                                       selectedCityIndexStore.selectedCityIndex = index + 1
+                                       print("⭐ [DEBUG] Город уже в избранных, переключаемся на индекс \(selectedCityIndexStore.selectedCityIndex)")
+                                       return
+                                   }
+
+                                   // 3️⃣ Если город **не в избранных**, он становится `selectedCity`
+                                   selectedCityIndexStore.selectedCityIndex = favoriteCities.count + 1
+                                   print("📌 [DEBUG] Новый город, добавляем как selectedCity, индекс \(selectedCityIndexStore.selectedCityIndex)")
+                               }
                                 
-                                // 🔄 Обновляем индекс на **новое место** города в списке
-                                if let index = Array(persistence.favoritedCities).firstIndex(where: { $0.id == city.id }) {
-                                    DispatchQueue.main.async {
-                                        selectedCityIndexStore.selectedCityIndex = index
-                                        print("🔄 selectedCityIndex обновлён: \(selectedCityIndexStore.selectedCityIndex)")
-                                    }
-                                }
-                            }
                         }
                         .padding()
                         .background(.ultraThinMaterial)
