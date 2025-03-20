@@ -25,8 +25,7 @@ struct CityWeatherView: View {
     @EnvironmentObject var persistence: Persistence
     
     var city: PersistentCity
-    @State private var weatherData: (RealtimeWeatherResponse?, DailyForecastResponse?, HourlyForecastResponse?) = (nil, nil, nil) // Инициализируем пустыми значениями
-//    @State private var isLoading: Bool = true // ✅ Флаг загрузки
+    @State private var weatherData: (RealtimeWeatherResponse?, DailyForecastResponse?, HourlyForecastResponse?) = (nil, nil, nil) // Инициализируем
     
     @State var selectedForecastType: ForecastType?
     @State var selectedDay: Daily?
@@ -89,46 +88,15 @@ struct CityWeatherView: View {
     }
 
     var body: some View {
-//        VStack {
-//        if isLoading {
-                    // ✅ Если загрузка идёт, показываем лоадер
-//                    VStack {
-//                        Text("⏳ Загружаем данные для \(city.name)...")
-//                            .font(.headline)
-//                            .foregroundColor(.gray)
-//                            .padding()
-//                        ProgressView()
-//                    }
-//                } else if effectiveWeatherData.0 != nil {
-//                    // ✅ Только если данные есть, показываем контент
-//                    VStack(alignment: .leading, spacing: 10) {
-//                        Text("Температура: \(effectiveWeatherData.0!.weatherData.values.temperature)°C")
-//                            .font(.largeTitle)
-//        
-        
+
+
         VStack(alignment: .leading, spacing: 10) {
-//            //
-//            if let temperature = effectiveWeatherData.0?.weatherData.values.temperature {
-//                Text("Температура: \(temperature)°C")
-//                    .font(.largeTitle)
-//            } else {
-//                Text("⏳ Загрузка погоды для \(city.name)...")
-//                    .font(.headline)
-//                    .foregroundColor(.gray)
-//            }
-//            
-//            // 🛠 Дебажный текст, показывающий реальные данные
-//            Text("🌡 Дебаг: \(effectiveWeatherData.0?.weatherData.values.temperature != nil ? "\(effectiveWeatherData.0!.weatherData.values.temperature)°C" : "Нет данных")")
-//                .foregroundColor(.red)
-//                .font(.caption)
-            
-//            if effectiveWeatherData.0 != nil {
+
                                    if let currentWeather = effectiveWeatherData.0 {
                 WeatherSummaryView(
                     city: city.toCity(),
                     weatherDescription: weatherDescription,
                                                currentWeather: currentWeather,
-//                    currentWeather: effectiveWeatherData.0!,
                     weatherEaster: weatherEaster,
                     formattedDate: formattedDate,
                     weatherIcon: weatherIcon,
@@ -138,6 +106,9 @@ struct CityWeatherView: View {
                                    }
                 
                 Spacer(minLength: 100)
+            Text("🕒 localHour в CityWeatherView: \(weatherViewModel.localHour ?? -1)")
+            Text("🌦 Weather Description: \(weatherDescription)")
+
                 
                 ScrollView {
                     if let dailyForecast = effectiveWeatherData.1, let hourlyForecast = effectiveWeatherData.2 {
@@ -170,17 +141,7 @@ struct CityWeatherView: View {
                 }
                 .id(selectedDay?.id)
 
-//                          }
-//            }
-//            else {
-//                            // ✅ Если данных так и нет, показываем заглушку
-//                            VStack {
-//                                Text("❌ Не удалось загрузить данные для \(city.name)")
-//                                    .font(.headline)
-//                                    .foregroundColor(.red)
-//                                    .padding()
-//                            }
-//                        }
+
 
         }
         .modifier(WeatherBackground(condition: weatherDescription, localHour: Binding(
@@ -188,21 +149,10 @@ struct CityWeatherView: View {
                 set: { weatherViewModel.localHour = $0 }
             )))
         .onAppear {
-//            if let userCity = weatherViewModel.userLocationCity {
-//                print("🌍 [DEBUG] Загружаем погоду для userLocationCity: \(userCity.name)")
+
             loadWeatherIfNeeded(for: city )
-//            } else {
-//                print("❌ userLocationCity не определён, не загружаем данные")
-//            }
+
         }
-//
-//        .onReceive(weatherViewModel.$userLocationWeather) { newWeatherData in
-//            if city.id == weatherViewModel.userLocationCity?.id {
-//                self.weatherData = newWeatherData
-//                print("🔄 userLocationWeather обновлено: \(newWeatherData.0?.weatherData.values.temperature ?? -999)°C")
-//                isLoading = false // ✅ Отключаем загрузку
-//            }
-//        }
 
     }
 

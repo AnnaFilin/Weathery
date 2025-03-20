@@ -1,10 +1,3 @@
-////
-////  WeatherContentView.swift
-////  Weathery
-////
-////  Created by Anna Filin on 24/02/2025.
-////
-////
 
 //
 //  WeatherContentView.swift
@@ -81,10 +74,7 @@ struct WeatherContentView: View {
             
                     .onAppear {
                         print("📍 [DEBUG] WeatherContentView onAppear вызван")
-//                        if !initialIndexSet, let userCity = weatherViewModel.userLocationCity {
-//                            updateSelectedCityIndex(for: userCity)
-//                            initialIndexSet = true
-//                        }
+
                         if !initialIndexSet, let userCity = weatherViewModel.userLocationCity {
                               updateSelectedCityIndex(for: userCity)
                               initialIndexSet = true
@@ -99,13 +89,7 @@ struct WeatherContentView: View {
                         guard let newSelectedCity, oldValue?.id != newSelectedCity.id else { return }
                         updateSelectedCityIndex(for: newSelectedCity)
                     }
-            //        .onChange(of: weatherViewModel.userLocationCity) { oldValue, newUserCity in
-            //            guard let newUserCity, oldValue?.id != newUserCity.id else { return }
-            //            updateSelectedCityIndex(for: newUserCity)
-            //        }
-            
-            
-            
+           
             .ignoresSafeArea()
         }  else {
                         // Показываем заглушку до появления userLocationCity

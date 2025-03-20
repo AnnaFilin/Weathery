@@ -13,7 +13,6 @@ import CoreLocation
 
 @MainActor
 class WeatherViewModel: ObservableObject {
-//    @Published var location: CLLocationCoordinate2D?
     @Published var location: CLLocationCoordinate2D? {
         didSet {
             print("📍 [WeatherViewModel] Coordinates updated: \(String(describing: location))")
@@ -53,9 +52,7 @@ class WeatherViewModel: ObservableObject {
             
         }
     }
-    
-    
-    
+
     
     @Published var userLocationWeather: (RealtimeWeatherResponse?, DailyForecastResponse?, HourlyForecastResponse?) = (nil, nil, nil) {
         didSet {
@@ -200,10 +197,8 @@ class WeatherViewModel: ObservableObject {
 //        } catch WeatherError.tooManyRequests {
 //            print("🚨 Превышен лимит API для \(city.name), попробуйте позже.")
 //            self.apiLimitReached = true
-////            await loadMockWeatherData(for: city, isUserLocation: isUserLocation)
 //        } catch {
 //            print("❌ Ошибка загрузки погоды для \(city.name): \(error)")
-////            await loadMockWeatherData(for: city, isUserLocation: isUserLocation)
 //        }
 //    }
 
@@ -212,54 +207,42 @@ class WeatherViewModel: ObservableObject {
         await loadMockWeatherData(for: city)
     }
 
-    
     @MainActor
     func updateLocalHour() async {
         let city = selectedCity ?? userLocationCity
-//        let weatherData = selectedCityWeather.0 ?? userLocationWeather.0 // 🛑 Берём данные из обоих!
         let weatherData = (selectedCity != nil) ? selectedCityWeather.0 : userLocationWeather.0
 
-        
         guard let city = city, let utcDate = weatherData?.weatherData.time else {
             print("⚠️ selectedCity или userLocationCity пусты, используем время устройства.")
             self.localHour = Calendar.current.component(.hour, from: Date())
             return
         }
-        
+
+        print("🕒 [updateLocalHour] API-время (UTC?): \(utcDate)")
+
+        // Получаем таймзону города
         let timeZone = await getTimeZone(for: city.latitude, longitude: city.longitude) ?? TimeZone.current
-        let calendar = Calendar.current
-        var localCalendar = calendar
-        localCalendar.timeZone = timeZone
-        
-        let localHour = localCalendar.component(.hour, from: utcDate)
-        
+        var calendar = Calendar.current
+        calendar.timeZone = timeZone
+
+        // ✅ Преобразуем UTC → Local
+        let formatter = DateFormatter()
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+        let localDateString = formatter.string(from: utcDate) // 🔥 Локальное время в строковом формате
+        let localDate = formatter.date(from: localDateString) ?? utcDate // 🔥 Парсим обратно в Date
+        let localHour = calendar.component(.hour, from: localDate) // ✅ Берём час из ЛОКАЛЬНОГО времени
+
         DispatchQueue.main.async {
             self.localHour = localHour
-            print("🕒 [updateLocalHour] localHour обновлён: \(localHour) для города \(city.name) (таймзона: \(timeZone.identifier))")
+            print("🌍 Таймзона: \(timeZone.identifier)")
+            print("🕒 Local Time (String): \(localDateString)")
+            print("🔄 [updateLocalHour] localHour обновлён: \(localHour) для \(city.name)")
         }
     }
-    
-    
-    func convertToLocalTime(_ utcDate: Date, latitude: Double, longitude: Double) async -> String {
-        print("🌍 Starting UTC -> Local time conversion")
-        
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        
-        if let timeZone = await getTimeZone(for: latitude, longitude: longitude) {
-            print("✅ Timezone retrieved: \(timeZone.identifier)")
-            formatter.timeZone = timeZone
-        } else {
-            print("⚠️ Timezone not found, using `.current`")
-            formatter.timeZone = .current
-        }
-        
-        let localTime = formatter.string(from: utcDate)
-        print("🕒 Converted time: \(localTime)")
-        
-        return localTime
-    }
-    
+
+
 
     @MainActor
     func loadMockWeatherData(for city: City) async {
@@ -276,9 +259,9 @@ class WeatherViewModel: ObservableObject {
 
 
             self.selectedCityWeather = (realtime, daily, hourly)
-//            self.selectedCity = city
+//
             print("🌡 selectedCityWeather обновлено (мок-данные) для \(self.selectedCity?.name ?? "nil"): \(self.selectedCityWeather.0?.weatherData.values.temperature ?? -999)°C")
-//        }
+
 
         // Обновляем `localHour`
         Task {
@@ -297,7 +280,7 @@ class WeatherViewModel: ObservableObject {
     }
     
     
-//    func loadMockUserLocationWeather(for location: CLLocationCoordinate2D) async {
+
     func loadMockUserLocationWeather(for city: City) async {
 
         print("🔄 Загружаем мок-данные для userLocation  ---->   \(city.name)...")
@@ -327,24 +310,29 @@ class WeatherViewModel: ObservableObject {
         }
     }
 
-    
+//    
     func convertMockTimeToLocalHour(utcDate: Date, latitude: Double, longitude: Double) async -> Int {
         let timeZone = await getTimeZone(for: latitude, longitude: longitude) ?? TimeZone.current
-        let formatter = DateFormatter()
-        formatter.timeZone = timeZone
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        
-        let localDateString = formatter.string(from: utcDate)
-        let localHour = Calendar.current.component(.hour, from: utcDate)
-        
-        print("🕒 UTC Date: \(utcDate)")
-        print("🌍 Timezone: \(timeZone.identifier)")
-        print("🕒 Local Time (as String): \(localDateString)")
-        print("🔄 Local Hour: \(localHour)")
-        
-        return localHour
+           var calendar = Calendar.current
+           calendar.timeZone = timeZone
+
+           // ✅ Правильное преобразование UTC → Local
+           let formatter = DateFormatter()
+           formatter.timeZone = timeZone
+           formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+           
+           let localDateString = formatter.string(from: utcDate) // 🔥 Строка с ЛОКАЛЬНЫМ временем
+           let localDate = formatter.date(from: localDateString) ?? utcDate // 🔥 Парсим обратно в Date
+           let localHour = calendar.component(.hour, from: localDate) // ✅ Берём час из ЛОКАЛЬНОГО времени
+
+           print("🕒 UTC Date (API): \(utcDate)")
+           print("🌍 Timezone found: \(timeZone.identifier)")
+           print("🕒 Local Time (String): \(localDateString)")
+           print("🔄 Local Hour (Converted): \(localHour)")
+
+           return localHour
     }
-    
+//    
 
     
     @MainActor
@@ -379,26 +367,26 @@ class WeatherViewModel: ObservableObject {
     }
 
     
-    @MainActor
-    func getLocalHour() async -> Int {
-        guard let city = selectedCity,
-              let utcDate = selectedCityWeather.0?.weatherData.time else { // ✅ Берём погоду из selectedCityWeather
-            print("⚠️ selectedCity or weather data not loaded. Using device's current time.")
-            return Calendar.current.component(.hour, from: Date()) // Fallback
-        }
-        
-        let timeZone = await getTimeZone(for: city.latitude, longitude: city.longitude) ?? TimeZone.current
-        let calendar = Calendar.current
-        var localCalendar = calendar
-        localCalendar.timeZone = timeZone
-        
-        let localHour = localCalendar.component(.hour, from: utcDate)
-        
-        print("🕒 API time (UTC): \(utcDate)")
-        print("🌍 City timezone: \(timeZone.identifier)")
-        print("✅ Final `localHour` for \(city.name): \(localHour)")
-        
-        return localHour
-    }
+//    @MainActor
+//    func getLocalHour() async -> Int {
+//        guard let city = selectedCity,
+//              let utcDate = selectedCityWeather.0?.weatherData.time else { // ✅ Берём погоду из selectedCityWeather
+//            print("⚠️ selectedCity or weather data not loaded. Using device's current time.")
+//            return Calendar.current.component(.hour, from: Date()) // Fallback
+//        }
+//        
+//        let timeZone = await getTimeZone(for: city.latitude, longitude: city.longitude) ?? TimeZone.current
+//        let calendar = Calendar.current
+//        var localCalendar = calendar
+//        localCalendar.timeZone = timeZone
+//        
+//        let localHour = localCalendar.component(.hour, from: utcDate)
+//        
+//        print("🕒 API time (UTC): \(utcDate)")
+//        print("🌍 City timezone: \(timeZone.identifier)")
+//        print("✅ Final `localHour` for \(city.name): \(localHour)")
+//        
+//        return localHour
+//    }
     
 }

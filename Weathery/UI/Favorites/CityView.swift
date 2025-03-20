@@ -11,7 +11,7 @@ struct CityView: View {
 
 
     var city: PersistentCity
-       var weatherData: (RealtimeWeatherResponse?, DailyForecastResponse?, HourlyForecastResponse?)
+    var weatherData: (RealtimeWeatherResponse?, DailyForecastResponse?, HourlyForecastResponse?)
     
     
     var body: some View {

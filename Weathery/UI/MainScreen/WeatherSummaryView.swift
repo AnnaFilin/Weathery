@@ -56,8 +56,12 @@ struct WeatherSummaryView: View {
                     .bold()
                 Text(formattedDate)
                 
-                Text(currentWeather.weatherData.time, formatter: DateFormatter.timeWithMinutes)
-                    .font(.subheadline)
+//                Text(currentWeather.weatherData.time, formatter: DateFormatter.timeWithMinutes)
+//                    .font(.subheadline)
+                
+                // ✅ Вместо UTC времени передаём `localTime`
+                                Text(localTime)
+                                    .font(.subheadline)
             }
             
             CurrentTemperatureView(
@@ -80,6 +84,16 @@ struct WeatherSummaryView: View {
         .background(Color.clear)
         .zIndex(1)
         .padding(.horizontal, AppSpacing.horizontal)
+        .onAppear {
+            Task {
+                    await updateLocalTime() // ✅ Вызываем при загрузке
+                }
+        }  // ✅ Вызываем при загрузке
+             .onChange(of: currentWeather.weatherData.time) {  oldValue, newValue in
+                 Task {
+                         await updateLocalTime() // ✅ Вызываем при загрузке
+                     }
+             }
         .sheet(isPresented: $isSearchPresented) {  // ✅ Shows `CitySearchView`
             CitySearchView(selectedTab: $selectedTab)
                 .environmentObject(weatherViewModel)
@@ -88,6 +102,63 @@ struct WeatherSummaryView: View {
                 .environmentObject(selectedCityIndexStore)
         }
     }
+    
+//    
+//    /// ✅ Функция обновления `localTime`
+//    private func updateLocalTime() async {
+//            let timeZone = await getTimeZone(for: city.latitude, longitude: city.longitude) ?? TimeZone.current
+//
+//            let formatter = DateFormatter.timeWithMinutes
+//            formatter.timeZone = timeZone
+//
+//            DispatchQueue.main.async {
+//                localTime = formatter.string(from: currentWeather.weatherData.time)
+//                print("⏰ Обновлено локальное время для \(city.name): \(localTime)")
+//            }
+//        }
+    
+    /// ✅ Функция обновления `localTime`
+//    private func updateLocalTime() async {
+//        let timeZone = await getTimeZone(for: city.latitude, longitude: city.longitude) ?? TimeZone.current
+//        print("Таймзона для \(city.name): \(timeZone.identifier)")
+//        let utcDate = currentWeather.weatherData.time // Это время в UTC из API
+//        print("🕒 UTC время перед обработкой: \(utcDate)")
+//
+//        // Переводим UTC в локальное время
+//        var calendar = Calendar.current
+//        calendar.timeZone = timeZone
+//        let localHour = calendar.component(.hour, from: utcDate)
+//        
+//        let formatter = DateFormatter()
+//        formatter.timeZone = timeZone
+//        formatter.dateFormat = "h:mm a" // "9:15 AM"
+//        
+//        let localDateString = formatter.string(from: utcDate) // Локальное время в строку
+//        
+//        DispatchQueue.main.async {
+//            localTime = localDateString
+//            print("✅ Обновлено локальное время для \(city.name): \(localTime) (Часовой пояс: \(timeZone.identifier))")
+//        }
+//    }
+    
+    /// ✅ Функция обновления `localTime`
+    private func updateLocalTime() async {
+        print("🌍 Проверяем таймзону для \(city.name), координаты: \(city.latitude), \(city.longitude)")
+
+        let timeZone = await getTimeZone(for: city.latitude, longitude: city.longitude) ?? TimeZone.current
+
+        print("✅ Таймзона найдена: \(timeZone.identifier) для \(city.name)")
+
+        let formatter = DateFormatter.timeWithMinutes
+        formatter.timeZone = timeZone
+
+        DispatchQueue.main.async {
+            localTime = formatter.string(from: currentWeather.weatherData.time)
+            print("⏰ Обновлено локальное время для \(city.name): \(localTime) (Часовой пояс: \(timeZone.identifier))")
+        }
+    }
+
+
 }
 
 //#Preview {

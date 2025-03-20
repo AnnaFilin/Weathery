@@ -43,9 +43,21 @@ func formatTime(date: Date) -> String {
 
 func getTimeZone(for latitude: Double, longitude: Double) async -> TimeZone? {
     print("🌍 Получаем таймзону для \(latitude), \(longitude)")
-    let timeZone = TimeZone(secondsFromGMT: Int(longitude * 3600 / 15)) // Пример!
-    print("✅ Таймзона: \(timeZone?.identifier ?? "❌ не найдена")")
-    return timeZone
+
+    let location = CLLocation(latitude: latitude, longitude: longitude)
+       let geocoder = CLGeocoder()
+       
+       do {
+           let placemarks = try await geocoder.reverseGeocodeLocation(location)
+           if let timeZone = placemarks.first?.timeZone {
+               print("✅ Таймзона найдена: \(timeZone.identifier)")
+               return timeZone
+           }
+       } catch {
+           print("⚠️ Ошибка при получении таймзоны: \(error.localizedDescription)")
+       }
+       
+       return TimeZone.current
 }
 
 
