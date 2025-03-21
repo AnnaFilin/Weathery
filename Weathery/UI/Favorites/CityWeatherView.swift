@@ -117,10 +117,12 @@ struct CityWeatherView: View {
                             hourlyForecast: hourlyForecast,
                             weatherDescription: weatherDescription,
                             weatherIcon: weatherIcon,
+//                            localHour: localHour,
                             selectedForecastType: $selectedForecastType,
                             selectedDay: $selectedDay,
                             showSheet: $showSheet
                         )
+                        
                     }
                 }
                 .sheet(item: $selectedForecastType) { type in

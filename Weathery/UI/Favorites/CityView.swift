@@ -58,10 +58,3 @@ struct CityView: View {
 }
 
 
-//#Preview {
-//    let locationManager = LocationManager()
-//    let weatherViewModel = WeatherViewModel(locationManager: locationManager)
-//    let city = PersistentCity(id: 123, name: "Moscow", country: "Russia", latitude: 55.7558, longitude: 37.6173)
-//
-//    return CityView(city: city, weatherViewModel: weatherViewModel)
-//}

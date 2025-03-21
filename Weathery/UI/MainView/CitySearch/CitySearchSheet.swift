@@ -5,9 +5,6 @@
 //  Created by Anna Filin on 26/02/2025.
 //
 
-//import SwiftUI
-
-
 import SwiftUI
 
 struct CitySearchSheet: View {
@@ -24,7 +21,7 @@ struct CitySearchSheet: View {
         ZStack {
             ScrollView {
                 VStack {
-                    ForEach(viewModel.cities, id: \.self) { city in
+                    ForEach(viewModel.cities, id: \ .self) { city in
                         HStack {
                             Text("\(city.name), \(city.country)")
                             
@@ -44,51 +41,34 @@ struct CitySearchSheet: View {
                             .buttonStyle(.plain)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        //
+                        
                         .onTapGesture {
-//                            print("✅ City selected: \(city.name)")
-//                            weatherViewModel.selectedCity = city  // ✅ Просто передаём в модель
-//                            
-//                            DispatchQueue.main.async {
-//                                if !persistence.favoritedCities.contains(where: { $0.id == city.id }) {
-//                                }
-//                                print("⚠️ Перед обновлением: \(selectedCityIndexStore.selectedCityIndex)")
-//                                
-//                                // 🔄 Обновляем индекс на **новое место** города в списке
-//                                if let index = Array(persistence.favoritedCities).firstIndex(where: { $0.id == city.id }) {
-//                                    DispatchQueue.main.async {
-//                                        selectedCityIndexStore.selectedCityIndex = index
-//                                        print("🔄 selectedCityIndex обновлён: \(selectedCityIndexStore.selectedCityIndex)")
-//                                    }
-//                                }
-//                            }
                             print("✅ City selected: \(city.name)")
-                               weatherViewModel.selectedCity = city  // ✅ Просто передаём в модель
+                            weatherViewModel.selectedCity = city  // ✅ Simply pass to the model
 
-                               DispatchQueue.main.async {
-                                   let favoriteCities = Array(persistence.favoritedCities) // Преобразуем Set в Array
+                            DispatchQueue.main.async {
+                                let favoriteCities = Array(persistence.favoritedCities) // Convert Set to Array
 
-                                   print("⚠️ Перед обновлением: \(selectedCityIndexStore.selectedCityIndex)")
+                                print("⚠️ Before update: \(selectedCityIndexStore.selectedCityIndex)")
 
-                                   // 1️⃣ Если это userLocationCity → ставим индекс 0
-                                   if weatherViewModel.userLocationCity?.id == city.id {
-                                       selectedCityIndexStore.selectedCityIndex = 0
-                                       print("📍 [DEBUG] Выбран userLocationCity, индекс 0")
-                                       return
-                                   }
+                                // 1️⃣ If it's the userLocationCity → set index to 0
+                                if weatherViewModel.userLocationCity?.id == city.id {
+                                    selectedCityIndexStore.selectedCityIndex = 0
+                                    print("📍 [DEBUG] userLocationCity selected, index 0")
+                                    return
+                                }
 
-                                   // 2️⃣ Если город уже **есть в избранных** — просто переходим на его индекс
-                                   if let index = favoriteCities.firstIndex(where: { $0.id == city.id }) {
-                                       selectedCityIndexStore.selectedCityIndex = index + 1
-                                       print("⭐ [DEBUG] Город уже в избранных, переключаемся на индекс \(selectedCityIndexStore.selectedCityIndex)")
-                                       return
-                                   }
+                                // 2️⃣ If the city is already **in favorites** — just switch to its index
+                                if let index = favoriteCities.firstIndex(where: { $0.id == city.id }) {
+                                    selectedCityIndexStore.selectedCityIndex = index + 1
+                                    print("⭐ [DEBUG] City is already in favorites, switching to index \(selectedCityIndexStore.selectedCityIndex)")
+                                    return
+                                }
 
-                                   // 3️⃣ Если город **не в избранных**, он становится `selectedCity`
-                                   selectedCityIndexStore.selectedCityIndex = favoriteCities.count + 1
-                                   print("📌 [DEBUG] Новый город, добавляем как selectedCity, индекс \(selectedCityIndexStore.selectedCityIndex)")
-                               }
-                                
+                                // 3️⃣ If the city is **not in favorites**, it becomes `selectedCity`
+                                selectedCityIndexStore.selectedCityIndex = favoriteCities.count + 1
+                                print("📌 [DEBUG] New city, adding as selectedCity, index \(selectedCityIndexStore.selectedCityIndex)")
+                            }
                         }
                         .padding()
                         .background(.ultraThinMaterial)
@@ -101,3 +81,4 @@ struct CitySearchSheet: View {
         .padding(.horizontal)
     }
 }
+

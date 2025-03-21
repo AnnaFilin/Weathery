@@ -12,6 +12,7 @@ struct ForecastCardsView: View {
     var hourlyForecast: HourlyForecastResponse
     var weatherDescription: String
     var weatherIcon: String
+//    var localHour: Int
     
     @Binding var selectedForecastType: ForecastType?
     @Binding var selectedDay: Daily?
@@ -25,9 +26,11 @@ struct ForecastCardsView: View {
                     RoundedRectangle(cornerRadius: 15)
                         .fill(.peachPuff.opacity(0.45))
                         .frame(width: UIScreen.main.bounds.width * 0.22, height: 150)
-                    
+                        .shadow(color: Color.black.opacity(0.35), radius: 0.5, x: 0, y: 0)
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Today")
+                            .shadow(color: Color.black.opacity(0.4), radius: 1, x: 0, y: 1)
                             .font(AppTypography.title)
                             .foregroundColor(.white.opacity(0.9))
                             .padding(.top, 8)
@@ -52,15 +55,18 @@ struct ForecastCardsView: View {
                 }
                 
                 ZStack(alignment: .topLeading) {
+                   
+
+
                     RoundedRectangle(cornerRadius: 15)
-                    //                                           .fill(Color.white.opacity(0.2))
                         .fill(.peachPuff.opacity(0.45))
                         .frame(width: UIScreen.main.bounds.width * 0.7, height: 150)
+                        .shadow(color: Color.black.opacity(0.35), radius: 0.5, x: 0, y: 0)
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text("7 Day Forecast")
+                            .shadow(color: Color.black.opacity(0.4), radius: 1, x: 0, y: 1)
                             .font(AppTypography.title)
-                        //                                           .foregroundColor(.white.opacity(0.9))
                             .padding(.leading, 12)
                         
                         ForecastView(forecast: dailyForecast,  selectedDay: $selectedDay,

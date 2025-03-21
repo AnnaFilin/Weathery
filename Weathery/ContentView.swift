@@ -64,7 +64,6 @@ struct ContentView: View {
             
             print("🌍 [DEBUG] ContentView onAppear вызван")
             print("📍 ContentView запрашивает requestLocation()")
-//            weatherViewModel.requestLocation()
             if weatherViewModel.location == nil {
                   print("📍 [DEBUG] Локация отсутствует, запрашиваем")
                   weatherViewModel.requestLocation()

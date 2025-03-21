@@ -15,11 +15,22 @@ struct WeatherBackground: ViewModifier {
     func body(content: Content) -> some View {
         ZStack {
             LinearGradient(
-                gradient: Gradient(colors: backgroundColor(condition: condition, hour: localHour)),
+                gradient: Gradient(colors: backgroundColor(condition: condition, hour: 8)),
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
+            
+            // Дополнительный overlay для улучшения читаемости текста
+              LinearGradient(
+                  gradient: Gradient(colors: [
+                      Color.black.opacity(0.15), // Лёгкое затемнение сверху
+                      Color.clear
+                  ]),
+                  startPoint: .top,
+                  endPoint: .bottom
+              )
+              .ignoresSafeArea()
             
             //            // Добавляем облака, если погода облачная
             if condition == "Cloudy" {
@@ -79,12 +90,24 @@ struct WeatherBackground: ViewModifier {
         switch hour {
         case 0..<6: // Ночь
             baseColors = [Color("darkSlateBlueColor"), Color("midnightBlueColor")]
+//        case 6..<9: // Рассвет
+//            baseColors = [Color("lightBlueColor"), Color("goldColor"), Color("lemonChiffonColor"), Color("royalBlueColor")]
         case 6..<9: // Рассвет
-            baseColors = [Color("lightBlueColor"), Color("goldColor"), Color("lemonChiffonColor"), Color("royalBlueColor")]
+            baseColors = [
+                Color("lightBlueColor"),                        // Светло-голубой
+                Color(red: 0.8, green: 0.9, blue: 1.0).opacity(0.8),  // Мягкий утренний голубой
+                Color(red: 1.0, green: 0.85, blue: 0.6).opacity(0.9), // Персиковый свет
+                Color("goldColor").opacity(0.9),               // Золотистый
+                Color(red: 1.0, green: 0.95, blue: 0.8),       // Светлый теплый оттенок
+                Color("lemonChiffonColor"),                    // Лимонный тон
+                Color("royalBlueColor").opacity(0.7)           // Королевский синий, но приглушённый
+            ]
+
         case 9..<17: // День
             baseColors = [Color("skyBlueColor"), Color("lightBlueColor")]
         case 17..<20: // Закат
-            baseColors = [Color("royalBlueColor"), Color("crimsonColor"), Color("darkOrangeColor"), Color("darkOrchidColor"), Color("darkSlateBlueColor")]
+            baseColors = [Color("royalBlueColor"), Color("crimsonColor"), Color(red: 0.956, green: 0.65, blue: 0.75).opacity(0.85),   Color(red: 0.95, green: 0.7, blue: 0.55).opacity(0.8),   Color("darkOrangeColor"),   Color(red: 1.0, green: 0.77, blue: 0.49).opacity(0.8), Color("darkOrchidColor"),     Color(red: 0.49, green: 0.37, blue: 0.6).opacity(0.8), // Deep Violet
+Color("darkSlateBlueColor")]
         default: // Поздний вечер
             baseColors = [Color("darkSlateBlueColor"), Color("midnightBlueColor")]
         }
