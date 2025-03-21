@@ -49,7 +49,13 @@ class WeatherViewModel: ObservableObject {
         didSet {
             print("📍 userLocationCity updated: \(userLocationCity?.name ?? "nil")")
             
+            Task {
+                await refreshFavoriteCitiesWithMockData()
+            }
             
+//            Task {
+//                       await refreshFavoriteCitiesWeather()
+//                   }
         }
     }
 
@@ -279,7 +285,72 @@ class WeatherViewModel: ObservableObject {
         }
     }
     
-    
+    @MainActor
+    func refreshFavoriteCitiesWeather() async {
+        for city in persistence.favoritedCities {
+            let cityModel = city.toCity()
+            let weatherData = persistence.getWeatherData(for: cityModel)
+
+            if weatherData.0 == nil || weatherData.1 == nil || weatherData.2 == nil {
+                print("🌍 [DEBUG] Загружаем погоду для \(city.name)...")
+
+                do {
+                    let realtime = try await weatherService.fetchCurrentWeather(lat: city.latitude, lon: city.longitude)
+                    let daily = try await weatherService.fetchDailyForecast(lat: city.latitude, lon: city.longitude)
+                    let hourly = try await weatherService.fetchHourlyForecast(lat: city.latitude, lon: city.longitude)
+
+                    if realtime.weatherData.values.temperature.isNaN {
+                        print("⚠️ Ошибка: нет данных о температуре для \(city.name)! Пропускаем.")
+                        continue
+                    }
+
+                    // 💾 Сохраняем данные
+                    self.persistence.saveWeatherData(for: cityModel, realtime: realtime, daily: daily, hourly: hourly)
+
+                    // ⏰ Вычисляем localHour
+                    let hour = await calculateLocalHour(for: cityModel, utcDate: realtime.weatherData.time)
+                    self.persistence.localHourByCityId[city.id] = hour
+
+                    print("✅ Данные и localHour обновлены для \(city.name) → \(hour)ч")
+
+                } catch {
+                    print("❌ Ошибка при загрузке погоды для \(city.name): \(error)")
+                }
+
+            } else {
+                print("✅ Погода для \(city.name) уже есть и не требует обновления")
+            }
+        }
+    }
+
+    func refreshFavoriteCitiesWithMockData() async {
+        for city in persistence.favoritedCities {
+            print("🧪 [Mock] Загружаем данные для \(city.name)...")
+
+            if let realtime: RealtimeWeatherResponse = Bundle.main.decode("MockRealtimeWeather.json"),
+               let daily: DailyForecastResponse = Bundle.main.decode("MockDailyForecast.json"),
+               let hourly: HourlyForecastResponse = Bundle.main.decode("MockHourlyForecast.json") {
+
+                DispatchQueue.main.async {
+                    self.persistence.saveWeatherData(for: city.toCity(), realtime: realtime, daily: daily, hourly: hourly)
+                }
+
+                let hour = await convertMockTimeToLocalHour(
+                    utcDate: realtime.weatherData.time,
+                    latitude: city.latitude,
+                    longitude: city.longitude
+                )
+
+                DispatchQueue.main.async {
+                    self.persistence.localHourByCityId[city.id] = hour
+                }
+
+            } else {
+                print("❌ Ошибка загрузки мок-данных для \(city.name)")
+            }
+        }
+    }
+
 
     func loadMockUserLocationWeather(for city: City) async {
 
@@ -364,6 +435,29 @@ class WeatherViewModel: ObservableObject {
                 print("❌ Ошибка при обновлении погоды: \(error)")
             }
         }
+    }
+
+    
+    @MainActor
+    func calculateLocalHour(for city: City, utcDate: Date) async -> Int {
+        print("🕒 [calculateLocalHour] UTC для \(city.name): \(utcDate)")
+
+        // Получаем таймзону
+        let timeZone = await getTimeZone(for: city.latitude, longitude: city.longitude) ?? TimeZone.current
+        var calendar = Calendar.current
+        calendar.timeZone = timeZone
+
+        // Преобразуем UTC → Local
+        let formatter = DateFormatter()
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+        let localDateString = formatter.string(from: utcDate)
+        let localDate = formatter.date(from: localDateString) ?? utcDate
+        let hour = calendar.component(.hour, from: localDate)
+
+        print("🕒 Local time для \(city.name): \(localDateString) → \(hour)ч")
+        return hour
     }
 
     

@@ -196,6 +196,8 @@ class Persistence: ObservableObject {
     @Published var selectedCity: PersistentCity?
     
     @Published var weatherData: [Int: WeatherDataEntry] = [:]
+    @Published var localHourByCityId: [Int: Int] = [:]
+
     
     private let key = "FavoriteCities"
     
@@ -259,20 +261,20 @@ class Persistence: ObservableObject {
         return (nil, nil, nil)
     }
     
-    func refreshFavoriteCitiesWeather() {
-        for city in favoritedCities {
-            let weatherData = getWeatherData(for: city.toCity())
-
-            if weatherData.0 == nil || weatherData.1 == nil || weatherData.2 == nil {
-                print("🌍 [DEBUG] Данные отсутствуют для \(city.name), загружаем...")
-                Task {
-                    await WeatherService.shared.fetchWeatherData(for: city.toCity())
-                }
-            } else {
-                print("✅ Данные для \(city.name) уже есть")
-            }
-        }
-    }
+//    func refreshFavoriteCitiesWeather() {
+//        for city in favoritedCities {
+//            let weatherData = getWeatherData(for: city.toCity())
+//
+//            if weatherData.0 == nil || weatherData.1 == nil || weatherData.2 == nil {
+//                print("🌍 [DEBUG] Данные отсутствуют для \(city.name), загружаем...")
+//                Task {
+////                    await WeatherService.shared.fetchWeatherData(for: city.toCity())
+//                }
+//            } else {
+//                print("✅ Данные для \(city.name) уже есть")
+//            }
+//        }
+//    }
 
     
     func contains(_ city: PersistentCity) -> Bool {
@@ -298,24 +300,24 @@ class Persistence: ObservableObject {
         }
     }
     
-//    private func loadFavorites() { // ✅ Moved loading into a separate function
-//        if let savedItems = UserDefaults.standard.data(forKey: key),
-//           let decodedItems = try? JSONDecoder().decode(Set<PersistentCity>.self, from: savedItems) {
-//            favoritedCities = decodedItems
-//        }
-//    }
-    private func loadFavorites() {
+    private func loadFavorites() { // ✅ Moved loading into a separate function
         if let savedItems = UserDefaults.standard.data(forKey: key),
            let decodedItems = try? JSONDecoder().decode(Set<PersistentCity>.self, from: savedItems) {
             favoritedCities = decodedItems
-            print("✅ Загружены избранные города: \(favoritedCities.map { $0.name })")
-
-            // 🔥 После загрузки избранных городов – проверяем погоду для них
-            refreshFavoriteCitiesWeather()
-        } else {
-            print("❌ Нет сохранённых избранных городов")
         }
     }
+//    private func loadFavorites() {
+//        if let savedItems = UserDefaults.standard.data(forKey: key),
+//           let decodedItems = try? JSONDecoder().decode(Set<PersistentCity>.self, from: savedItems) {
+//            favoritedCities = decodedItems
+//            print("✅ Загружены избранные города: \(favoritedCities.map { $0.name })")
+//
+//            // 🔥 После загрузки избранных городов – проверяем погоду для них
+//            refreshFavoriteCitiesWeather()
+//        } else {
+//            print("❌ Нет сохранённых избранных городов")
+//        }
+//    }
 
 }
 
