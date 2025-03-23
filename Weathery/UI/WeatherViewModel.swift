@@ -121,48 +121,39 @@ class WeatherViewModel: ObservableObject {
         return nil
     }
      
-//        func fetchWeather(for city: City, isUserLocation: Bool) async throws {
-//            if isFetchingWeather {
-//                  return
-//              }
-//              isFetchingWeather = true
-//              defer { isFetchingWeather = false } // Разблокируем после завершения
-//    
-////            print("🌍 [DEBUG] Начинаем загрузку погоды для \(city.name). isUserLocation = \(isUserLocation)")
-//    
-//            do {
-//                let realtime = try await weatherService.fetchCurrentWeather(lat: city.latitude, lon: city.longitude)
-//                let daily = try await weatherService.fetchDailyForecast(lat: city.latitude, lon: city.longitude)
-//                let hourly = try await weatherService.fetchHourlyForecast(lat: city.latitude, lon: city.longitude)
-//    
-//                if realtime.weatherData.values.temperature.isNaN {
-//                    return
-//                }
-//        
-//                if isUserLocation {
-//    
-//                    if realtime.weatherData.values.temperature == -999.0 {
-//                        print("🚨 [ERROR] API вернул -999.0°C! Данные невалидные.")
-//                    }
-//    
-//                    self.userLocationWeather = (realtime, daily, hourly)
-//    
-//                    print("✅ [DEBUG] userLocationWeather обновлён: \(self.userLocationWeather.0?.weatherData.values.temperature ?? -999)°C")
-//                } else {
-//                    self.selectedCityWeather = (realtime, daily, hourly)
-//                }
-//        
-//                Task {
-//                    await self.updateLocalHour()
-//                }
-//    
-//            } catch WeatherError.tooManyRequests {
-////                print("🚨 Превышен лимит API для \(city.name), попробуйте позже.")
-//                self.apiLimitReached = true
-//            } catch {
-//                print("❌ Ошибка загрузки погоды для \(city.name): \(error)")
-//            }
-//        }
+    //        func fetchWeather(for city: City, isUserLocation: Bool) async throws {
+    //            if isFetchingWeather {
+    //                return
+    //            }
+    //            isFetchingWeather = true
+    //            defer { isFetchingWeather = false }
+    //
+    //            do {
+    //                let realtime = try await weatherService.fetchCurrentWeather(lat: city.latitude, lon: city.longitude)
+    //                let daily = try await weatherService.fetchDailyForecast(lat: city.latitude, lon: city.longitude)
+    //                let hourly = try await weatherService.fetchHourlyForecast(lat: city.latitude, lon: city.longitude)
+    //
+    //                if realtime.weatherData.values.temperature.isNaN {
+    //                    return
+    //                }
+    //
+    //                if isUserLocation {
+    //                    self.userLocationWeather = (realtime, daily, hourly)
+    //                } else {
+    //                    self.selectedCityWeather = (realtime, daily, hourly)
+    //                }
+    //
+    //                Task {
+    //                    await self.updateLocalHour()
+    //                }
+    //
+    //            } catch WeatherError.tooManyRequests {
+    //                self.apiLimitReached = true
+    //            } catch {
+    //                print("❌ Failed to fetch weather for \(city.name): \(error)")
+    //            }
+    //        }
+
     
     func fetchWeather(for city: City, isUserLocation: Bool) async {
         await loadMockWeatherData(for: city)
