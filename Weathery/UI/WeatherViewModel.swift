@@ -38,13 +38,13 @@ class WeatherViewModel: ObservableObject {
     @Published var userLocationCity: City? {
         didSet {
             
-            Task {
-                await refreshFavoriteCitiesWithMockData()
-            }
-            
 //            Task {
-//                       await refreshFavoriteCitiesWeather()
-//                   }
+//                await refreshFavoriteCitiesWithMockData()
+//            }
+            
+            Task {
+                       await refreshFavoriteCitiesWeather()
+                   }
         }
     }
 
@@ -121,43 +121,43 @@ class WeatherViewModel: ObservableObject {
         return nil
     }
      
-    //        func fetchWeather(for city: City, isUserLocation: Bool) async throws {
-    //            if isFetchingWeather {
-    //                return
-    //            }
-    //            isFetchingWeather = true
-    //            defer { isFetchingWeather = false }
-    //
-    //            do {
-    //                let realtime = try await weatherService.fetchCurrentWeather(lat: city.latitude, lon: city.longitude)
-    //                let daily = try await weatherService.fetchDailyForecast(lat: city.latitude, lon: city.longitude)
-    //                let hourly = try await weatherService.fetchHourlyForecast(lat: city.latitude, lon: city.longitude)
-    //
-    //                if realtime.weatherData.values.temperature.isNaN {
-    //                    return
-    //                }
-    //
-    //                if isUserLocation {
-    //                    self.userLocationWeather = (realtime, daily, hourly)
-    //                } else {
-    //                    self.selectedCityWeather = (realtime, daily, hourly)
-    //                }
-    //
-    //                Task {
-    //                    await self.updateLocalHour()
-    //                }
-    //
-    //            } catch WeatherError.tooManyRequests {
-    //                self.apiLimitReached = true
-    //            } catch {
-    //                print("❌ Failed to fetch weather for \(city.name): \(error)")
-    //            }
-    //        }
+    func fetchWeather(for city: City, isUserLocation: Bool) async throws {
+        if isFetchingWeather {
+            return
+        }
+        isFetchingWeather = true
+        defer { isFetchingWeather = false }
+
+        do {
+            let realtime = try await weatherService.fetchCurrentWeather(lat: city.latitude, lon: city.longitude)
+            let daily = try await weatherService.fetchDailyForecast(lat: city.latitude, lon: city.longitude)
+            let hourly = try await weatherService.fetchHourlyForecast(lat: city.latitude, lon: city.longitude)
+
+            if realtime.weatherData.values.temperature.isNaN {
+                return
+            }
+
+            if isUserLocation {
+                self.userLocationWeather = (realtime, daily, hourly)
+            } else {
+                self.selectedCityWeather = (realtime, daily, hourly)
+            }
+
+            Task {
+                await self.updateLocalHour()
+            }
+
+        } catch WeatherError.tooManyRequests {
+            self.apiLimitReached = true
+        } catch {
+            print("❌ Failed to fetch weather for \(city.name): \(error)")
+        }
+    }
 
     
-    func fetchWeather(for city: City, isUserLocation: Bool) async {
-        await loadMockWeatherData(for: city)
-    }
+//    func fetchWeather(for city: City, isUserLocation: Bool) async {
+//        await loadMockWeatherData(for: city)
+//    }
     
     @MainActor
     func updateLocalHour() async {
