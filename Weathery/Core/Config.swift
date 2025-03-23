@@ -1,6 +1,6 @@
 //
 //  Config.swift
-//  MovieSearch
+//  Weathery
 //
 //  Created by Anna Filin on 22/11/2024.
 //

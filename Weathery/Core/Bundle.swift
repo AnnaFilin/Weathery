@@ -11,7 +11,6 @@ extension Bundle {
     func decode<T: Codable>(_ file: String) -> T? {
             guard let url = self.url(forResource: file, withExtension: nil),
                   let data = try? Data(contentsOf: url) else {
-                print("❌ Ошибка: Не удалось загрузить файл \(file)")
                 return nil
             }
             

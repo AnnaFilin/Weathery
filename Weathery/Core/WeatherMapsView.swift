@@ -14,7 +14,6 @@ struct WeatherMapsView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
-//        mapView.mapType = .standard
         mapView.mapType = .satellite
         mapView.isRotateEnabled = false
         mapView.delegate = context.coordinator
@@ -34,8 +33,6 @@ struct WeatherMapsView: UIViewRepresentable {
     func updateUIView(_ uiView: MKMapView, context: Context) {
         let region = MKCoordinateRegion(
             center: location,
-//            span: MKCoordinateSpan(latitudeDelta: 0.3, longitudeDelta: 0.3)
-//            span: MKCoordinateSpan(latitudeDelta: 1.5, longitudeDelta: 1.5)
             span: MKCoordinateSpan(latitudeDelta: 5.0, longitudeDelta: 5.0)
         )
         uiView.setRegion(region, animated: true)
@@ -43,7 +40,7 @@ struct WeatherMapsView: UIViewRepresentable {
         if uiView.overlays.isEmpty || (uiView.overlays.first as? OpenWeatherTileOverlay)?.layer != selectedLayer {
             uiView.removeOverlays(uiView.overlays)
             let overlay = OpenWeatherTileOverlay(layer: selectedLayer)
-            uiView.addOverlay(overlay, level: .aboveLabels) // ✅ Поверх всех элементов
+            uiView.addOverlay(overlay, level: .aboveLabels) 
 
         }
     }
