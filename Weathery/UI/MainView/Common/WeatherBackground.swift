@@ -15,16 +15,15 @@ struct WeatherBackground: ViewModifier {
     func body(content: Content) -> some View {
         ZStack {
             LinearGradient(
-                gradient: Gradient(colors: backgroundColor(condition: condition, hour: 8)),
+                gradient: Gradient(colors: backgroundColor(condition: condition, hour: localHour)),
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
             
-            // Дополнительный overlay для улучшения читаемости текста
               LinearGradient(
                   gradient: Gradient(colors: [
-                      Color.black.opacity(0.15), // Лёгкое затемнение сверху
+                      Color.black.opacity(0.15),
                       Color.clear
                   ]),
                   startPoint: .top,
@@ -32,87 +31,74 @@ struct WeatherBackground: ViewModifier {
               )
               .ignoresSafeArea()
             
-            //            // Добавляем облака, если погода облачная
             if condition == "Cloudy" {
                 CloudView()
-                    .offset(y: -100) // Размещаем выше центра
+                    .offset(y: -100)
                 CloudView()
-                    .offset(y: 50) // Немного ниже
-                    .scaleEffect(0.8) // Уменьшаем размер
+                    .offset(y: 50)
+                    .scaleEffect(0.8)
             }
            
             if condition == "Rain" {
                 RainView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top) // Добавляем размер
-//                    .zIndex(1)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
+          
+            if condition == "Snow" {
+                SnowView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            //            
-            //            if condition == "Snow" {
-            //                SnowView()
-            ////                    .offset(x: 100) // Размещаем выше центра
-            //
-            //            }
-            //            if currentHour < 18 {
-            //                SunView()
-            //                Text(String(currentHour))
-            ////                    .offset(x: 100) // Размещаем выше центра
-            //
-            //            }
-            //            
-            //            if currentHour >= 18 {
-            //                MoonView()
-            //                Text(String(currentHour))
-            //
-            ////                    .offset(x: 100) // Размещаем выше центра
-            //
-            //            }
+            }
             
-            // Основной контент поверх фона
             content
         }
         .id(localHour)
-        .onChange(of: localHour) { _, newHour in
-//            print("🔄 localHour изменён в WeatherBackground: \(newHour)")
-            print("🔄 WeatherBackground: localHour обновился: \(newHour)")
-
-        }
         .foregroundColor(.white)
     }
     
 
     private func backgroundColor(condition: String, hour: Int) -> [Color] {
-        print("🎨 Меняем фон: Условие - \(condition), Время - \(hour)")
-
         var baseColors: [Color] = []
 
-        // 🌅 Определяем фон по времени суток
         switch hour {
-        case 0..<6: // Ночь
+        case 0..<6:
             baseColors = [Color("darkSlateBlueColor"), Color("midnightBlueColor")]
-//        case 6..<9: // Рассвет
-//            baseColors = [Color("lightBlueColor"), Color("goldColor"), Color("lemonChiffonColor"), Color("royalBlueColor")]
-        case 6..<9: // Рассвет
+
+        case 6..<9:
             baseColors = [
-                Color("lightBlueColor"),                        // Светло-голубой
-                Color(red: 0.8, green: 0.9, blue: 1.0).opacity(0.8),  // Мягкий утренний голубой
-                Color(red: 1.0, green: 0.85, blue: 0.6).opacity(0.9), // Персиковый свет
-                Color("goldColor").opacity(0.9),               // Золотистый
-                Color(red: 1.0, green: 0.95, blue: 0.8),       // Светлый теплый оттенок
-                Color("lemonChiffonColor"),                    // Лимонный тон
-                Color("royalBlueColor").opacity(0.7)           // Королевский синий, но приглушённый
+                Color("lightBlueColor"),
+                Color(red: 0.8, green: 0.9, blue: 1.0).opacity(0.8),
+                Color(red: 1.0, green: 0.85, blue: 0.6).opacity(0.9),
+                Color("goldColor").opacity(0.9),
+                Color(red: 1.0, green: 0.95, blue: 0.8),
+                Color("lemonChiffonColor"),
+                Color("royalBlueColor").opacity(0.7)
             ]
 
-        case 9..<17: // День
-            baseColors = [Color("skyBlueColor"), Color("lightBlueColor")]
-        case 17..<20: // Закат
-            baseColors = [Color("royalBlueColor"), Color("crimsonColor"), Color(red: 0.956, green: 0.65, blue: 0.75).opacity(0.85),   Color(red: 0.95, green: 0.7, blue: 0.55).opacity(0.8),   Color("darkOrangeColor"),   Color(red: 1.0, green: 0.77, blue: 0.49).opacity(0.8), Color("darkOrchidColor"),     Color(red: 0.49, green: 0.37, blue: 0.6).opacity(0.8), // Deep Violet
-Color("darkSlateBlueColor")]
-        default: // Поздний вечер
-            baseColors = [Color("darkSlateBlueColor"), Color("midnightBlueColor")]
+        case 9..<17:
+            baseColors = [
+                Color("skyBlueColor"),
+                Color("lightBlueColor")
+            ]
+        case 17..<20:
+            baseColors = [
+                Color("royalBlueColor"),
+                Color("crimsonColor"),
+                Color(red: 0.956, green: 0.65, blue: 0.75).opacity(0.85),
+                Color(red: 0.95, green: 0.7, blue: 0.55).opacity(0.8),
+                Color("darkOrangeColor"),
+                Color(red: 1.0, green: 0.77, blue: 0.49).opacity(0.8),
+                Color("darkOrchidColor"),
+                Color(red: 0.49, green: 0.37, blue: 0.6).opacity(0.8),
+                Color("darkSlateBlueColor")
+            ]
+        default:
+            baseColors = [
+                Color("darkSlateBlueColor"),
+                Color("midnightBlueColor")
+            ]
         }
 
-        // 🌧 Добавляем погодные фильтры
         switch condition {
         case "Rain":
             baseColors = baseColors.map { $0.opacity(0.7) } + [Color("greyColor")]
@@ -121,33 +107,31 @@ Color("darkSlateBlueColor")]
         case "Cloudy":
             baseColors = baseColors.map { $0.opacity(0.8) } + [Color("greyColor")]
         case "Thunderstorm":
-            baseColors = [Color("darkSlateBlueColor"), Color("black")] // Грозовой тёмный фон
+            baseColors = [Color("darkSlateBlueColor"), Color("black")]
         case "Fog":
-            baseColors = [Color("greyColor"), Color("lightGray")] // Туман
+            baseColors = [Color("greyColor"), Color("lightGray")]
         case "Drizzle":
             baseColors = baseColors.map { $0.opacity(0.75) } + [Color("lightGray")]
         case "Clear":
-            break // Оставляем дневные и ночные градиенты без изменений
+            break
         default:
             baseColors = [Color("skyBlueColor"), Color("greyColor")]
         }
 
-//        print("🎨 Итоговый фон: \(baseColors)")
         return baseColors
     }
 
-    
-//
+
     func tabBarColor(condition: String) -> UIColor {
         switch condition {
         case "Rain":
-            return UIColor.systemBlue.withAlphaComponent(0.8) // Тёмно-синий
+            return UIColor.systemBlue.withAlphaComponent(0.8)
         case "Snow":
-            return UIColor.white.withAlphaComponent(0.8) // Светлый, но затемнённый
+            return UIColor.white.withAlphaComponent(0.8)
         case "Cloudy":
-            return UIColor.gray.withAlphaComponent(0.9) // Серый, как облака
+            return UIColor.gray.withAlphaComponent(0.9)
         case "Clear":
-            return UIColor.systemTeal.withAlphaComponent(0.9) // Голубой
+            return UIColor.systemTeal.withAlphaComponent(0.9)
         default:
             return UIColor.systemGray
         }

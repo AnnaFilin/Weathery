@@ -1,10 +1,10 @@
-////
-////  ContentView.swift
-////  Weathery
-////
-////  Created by Anna Filin on 02/02/2025.
-////
 //
+//  ContentView.swift
+//  Weathery
+//
+//  Created by Anna Filin on 02/02/2025.
+//
+
 
 import SwiftUI
 
@@ -25,8 +25,7 @@ struct ContentView: View {
         
         TabView(selection: $selectedTab) {
             VStack {
-                
-                
+
                 WeatherContentView(selectedTab: $selectedTab)
                     .environmentObject(citySearchViewModel)
                     .environmentObject(weatherViewModel)
@@ -49,38 +48,27 @@ struct ContentView: View {
                 }
                 .tag(1)
             
-            Text("⚙️ Настройки")
+            Text("⚙️ Sttings")
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
                 .tag(2)
         }
+        .accentColor(.white)
         .edgesIgnoringSafeArea(.bottom)
-        
-        
         .onAppear {
-            print("🟢 ContentView appeared: selectedCity = \(weatherViewModel.selectedCity?.name ?? "nil")")
-            print("🟢 ContentView appeared: locationCity = \(weatherViewModel.userLocationCity?.name ?? "nil")")
-            
-            print("🌍 [DEBUG] ContentView onAppear вызван")
-            print("📍 ContentView запрашивает requestLocation()")
             if weatherViewModel.location == nil {
-                  print("📍 [DEBUG] Локация отсутствует, запрашиваем")
                   weatherViewModel.requestLocation()
               }
         }
-
         .onChange(of: weatherViewModel.userLocationCity) { oldValue, newUserCity in
             guard let newUserCity = newUserCity, oldValue?.id != newUserCity.id else { return }
-            print("📍 [DEBUG] userLocationCity обновлён: \(newUserCity.name)")
             
             Task {
                 await weatherViewModel.loadMockUserLocationWeather(for: newUserCity)
             }
         }
 
-
-        
     }
 }
 

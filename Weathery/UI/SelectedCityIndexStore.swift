@@ -9,12 +9,5 @@ import SwiftUI
 import Combine
 
 class SelectedCityIndexStore: ObservableObject {
-    @Published var selectedCityIndex: Int = 0 {
-        didSet {
-            print("⚠️ [SelectedCityIndexStore] selectedCityIndex изменён! Новое значение: \(selectedCityIndex)")
-            
-            // Добавляем источник изменения:
-//            Thread.callStackSymbols.forEach { print($0) }
-        }
-    }
+    @Published var selectedCityIndex: Int = 0 
 }

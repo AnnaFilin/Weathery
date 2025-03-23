@@ -1,11 +1,9 @@
-////
-////  CitySearchResults.swift
-////  Weathery
-////
-////  Created by Anna Filin on 05/03/2025.
-////
 //
-
+//  CitySearchResults.swift
+//  Weathery
+//
+//  Created by Anna Filin on 05/03/2025.
+//
 
 import SwiftUI
 
@@ -15,17 +13,15 @@ struct CitySearchResults: View {
     @EnvironmentObject var weatherViewModel: WeatherViewModel
     @EnvironmentObject var viewModel: CitySearchViewModel
     
-    @State private var showToast: Bool = false  // ✅ Toast flag
-    @State private var toastMessage: String = "" // ✅ Toast message
+    @State private var showToast: Bool = false
+    @State private var toastMessage: String = ""
     
-    var onCitySelected: (City) -> Void  // ✅ Closure for passing selected city
-    
+    var onCitySelected: (City) -> Void
     
     var body: some View {
         ZStack {
             ScrollView {
                 VStack {
-                    // ✅ Make sure `City` conforms to `Hashable`
                     ForEach(viewModel.cities, id: \.self) { city in
                         HStack {
                             Text("\(city.name), \(city.country)")

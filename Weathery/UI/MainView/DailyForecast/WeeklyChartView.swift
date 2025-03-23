@@ -1,19 +1,20 @@
+
 import SwiftUI
 import Charts
 
 struct WeeklyChartView: View {
-  
-    let forecast: [Daily] // Используем массив Daily
-
+    
+    let forecast: [Daily]
+    
     func weatherIcon(weatherCode: Int) -> String {
         return weatherCodes[weatherCode]?.iconDay ?? "unknown_large"
     }
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 15)
-
+                
                     .fill(.ultraThinMaterial)
                     .frame(width: UIScreen.main.bounds.width - AppSpacing.horizontal, height: 140)
                 
@@ -29,8 +30,8 @@ struct WeeklyChartView: View {
                             Chart {
                                 ForEach(forecast) { point in
                                     let temp = point.values.temperatureAvg ?? 0
-                                    let dateLabel = formattedDate(date: point.time) // Форматируем дату
-
+                                    let dateLabel = formattedDate(date: point.time)
+                                    
                                     LineMark(
                                         x: .value("Day", dateLabel),
                                         y: .value("Temperature", temp)
@@ -38,7 +39,7 @@ struct WeeklyChartView: View {
                                     .interpolationMethod(.catmullRom)
                                     .foregroundStyle(.blue)
                                     .lineStyle(StrokeStyle(lineWidth: 2))
-
+                                    
                                     PointMark(
                                         x: .value("Day", dateLabel),
                                         y: .value("Temperature", temp)
@@ -85,8 +86,7 @@ struct WeeklyChartView: View {
             .frame(width: UIScreen.main.bounds.width - AppSpacing.horizontal, height: 140)
         }
     }
-
-    // Форматирование даты в "Mon", "Tue" и т. д.
+    
     private func formattedDate(date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE" // "Mon", "Tue" и т. д.

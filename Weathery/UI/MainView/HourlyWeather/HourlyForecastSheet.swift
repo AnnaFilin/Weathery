@@ -58,16 +58,16 @@ struct HourlyForecastSheet: View {
             }
             .padding(.top, 10)
         }
-            .padding(.horizontal)
-            .background(
-                LinearGradient(
-                       gradient: Gradient(colors: [Color("greyColor"), Color("skyBlueColor")]),
-                       startPoint: .top,
-                       endPoint: .bottom
-                   )
-                .edgesIgnoringSafeArea(.all)
-
+        .padding(.horizontal)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color("greyColor"), Color("skyBlueColor")]),
+                startPoint: .top,
+                endPoint: .bottom
             )
+            .edgesIgnoringSafeArea(.all)
+            
+        )
     }
     
     

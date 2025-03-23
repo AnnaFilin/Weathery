@@ -17,8 +17,8 @@ struct WeeklyForecastSheet: View {
                 .fill(Color.white.opacity(0.6))
                 .frame(width: 60, height: 6)
                 .padding(.top, 10)
-
-
+            
+            
             Text("Weekly Forecast")
                 .font(.title2.bold())
             
@@ -28,36 +28,36 @@ struct WeeklyForecastSheet: View {
                         HStack {
                             Text(formattedForecastDate(date: day.time))
                                 .frame(width: 50,  alignment: .leading)
-
+                            
                             Image(weatherIcon(weatherCode: Int(day.values.weatherCodeMax!)))
                                 .resizable()
                                 .frame(width: 40, height: 40)
-                          
-
+                            
+                            
                             Text(getWeatherDescription(for: Int(day.values.weatherCodeMax!)))
                                 .font(.caption.bold())
                                 .frame(width: 80,  alignment: .leading)
                             
                             Spacer()
-
+                            
                             Text("\(Int(day.values.temperatureMin!))° / \(Int(day.values.temperatureMax!))°C")
                                 .font(.caption.bold())
-
+                            
                                 .frame(width: 80,  alignment: .center)
-
+                            
                             HStack(spacing: 2) {
                                 
-                            
-                            Image(systemName: "drop.halffull")
-                                .font(.caption.bold())
-                              
-
-
-                            Text("\(Int(day.values.humidityAvg ?? 0) )" )
-                                .font(.caption.bold())
+                                
+                                Image(systemName: "drop.halffull")
+                                    .font(.caption.bold())
+                                
+                                
+                                
+                                Text("\(Int(day.values.humidityAvg ?? 0) )" )
+                                    .font(.caption.bold())
                             }
-
-
+                            
+                            
                         }
                         .padding()
                         .background(.ultraThinMaterial)
@@ -74,14 +74,14 @@ struct WeeklyForecastSheet: View {
         .padding(.horizontal)
         .background(
             LinearGradient(
-                   gradient: Gradient(colors: [Color("greyColor"), Color("skyBlueColor")]),
-                   startPoint: .top,
-                   endPoint: .bottom
-               )
+                gradient: Gradient(colors: [Color("greyColor"), Color("skyBlueColor")]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
             .edgesIgnoringSafeArea(.all)
-
+            
         )
-
+        
     }
     
     func weatherIcon(weatherCode: Int) -> String {
@@ -92,7 +92,7 @@ struct WeeklyForecastSheet: View {
     }
 }
 
-//
+
 #Preview {
     WeeklyForecastSheet(forecast: DailyForecastResponse.exampleDaily)
 }

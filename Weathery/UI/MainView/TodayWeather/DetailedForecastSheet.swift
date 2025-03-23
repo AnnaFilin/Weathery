@@ -1,13 +1,8 @@
-//
-
-import SwiftUI
 
 import SwiftUI
 
 struct DetailedWeatherSheet: View {
     let dayForecast: Daily
-//    @State private var isVisible = false
-
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -52,8 +47,6 @@ struct DetailedWeatherSheet: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-
-//        .background(.ultraThinMaterial)
         .background(
             LinearGradient(
                 gradient: Gradient(colors: [Color("greyColor"), Color("skyBlueColor")]),
@@ -112,7 +105,6 @@ func weatherIcon(weatherCode: Int) -> String {
     return weatherCode.iconDay
 }
 
-// --- 🔹 Превью ---
 #Preview {
     DetailedWeatherSheet(dayForecast: DailyForecastResponse.exampleDaily.first!)
 }

@@ -9,32 +9,30 @@ import SwiftUI
 
 struct ForecastView: View {
     let forecast: DailyForecastResponse
-    @Binding var selectedDay: Daily? // ✅ Теперь можно передавать выбранный день в родительский View
+    @Binding var selectedDay: Daily?
     @Binding var showSheet: Bool
     @Binding var selectedForecastType: ForecastType?
-  
+    var localHour: Int?
+    var isDawn: Bool
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(forecast.timelines.daily) { day in
                             
-                   
                             DayAbstract(
                                 weatherIcon: weatherIcon(weatherCode: Int(day.values.weatherCodeMax!)),
                                 minTemperature: day.values.temperatureMin!,
                                 maxTemperature: day.values.temperatureMax!,
                                 description: getWeatherDescription(for: Int(day.values.weatherCodeMin!)),
-                                isToday: false
+                                isToday: false,
+                                localHour: localHour, 
+                                isDawn: isDawn
                             )
                             .frame(width: 70, height: 110)
                             .onTapGesture {
                                 selectedForecastType = .daily
                                 selectedDay = day
-                                print("Выбран день: \(day.values.temperatureMin ?? -999)°C") // ✅ Проверка
-//                                showSheet = true
-                                print("Выбран ForecastType: \(selectedForecastType!)")
-                                print("Выбран день в ForecastView: \(day.time)")
                             }
                         }
                     }
@@ -44,7 +42,7 @@ struct ForecastView: View {
     
     func weatherIcon(weatherCode: Int) -> String {
         guard let weatherCode = weatherCodes[weatherCode] else {
-            return "unknown_large" // Значение по умолчанию
+            return "unknown_large"
         }
         return weatherCode.iconDay
     }
@@ -52,17 +50,15 @@ struct ForecastView: View {
     func getWeatherDescription(for code: Int) -> String{
         
         if let weather = weatherCodes[code] {
-            //        return (weather.description, isDaytime ? weather.iconDay : (weather.iconNight ?? weather.iconDay))
             return weather.description
             
         } else {
-            //        return ("Unknown", "unknown")
             return "Unknown"
         }
     }
 }
 
 #Preview {
-    ForecastView(forecast: .exampleDailyForecast ?? DailyForecastResponse.mock,  selectedDay: .constant(nil), // ✅ Передаём пустой `Binding`
-                 showSheet: .constant(false), selectedForecastType: .constant(nil) )
+    ForecastView(forecast: .exampleDailyForecast ?? DailyForecastResponse.mock,  selectedDay: .constant(nil),
+                 showSheet: .constant(false), selectedForecastType: .constant(nil), isDawn: true )
 }

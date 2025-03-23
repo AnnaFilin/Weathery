@@ -14,8 +14,8 @@ struct CitySearchSheet: View {
     @EnvironmentObject var weatherViewModel: WeatherViewModel
     @EnvironmentObject var viewModel: CitySearchViewModel
     
-    @Binding var showToast: Bool  // ✅ Now it's a binding
-    @Binding var favoritedCities: Set<PersistentCity>  // ✅ Passing a copy of favorite cities
+    @Binding var showToast: Bool
+    @Binding var favoritedCities: Set<PersistentCity>
     
     var body: some View {
         ZStack {
@@ -44,30 +44,22 @@ struct CitySearchSheet: View {
                         
                         .onTapGesture {
                             print("✅ City selected: \(city.name)")
-                            weatherViewModel.selectedCity = city  // ✅ Simply pass to the model
+                            weatherViewModel.selectedCity = city
 
                             DispatchQueue.main.async {
-                                let favoriteCities = Array(persistence.favoritedCities) // Convert Set to Array
+                                let favoriteCities = Array(persistence.favoritedCities) 
 
-                                print("⚠️ Before update: \(selectedCityIndexStore.selectedCityIndex)")
-
-                                // 1️⃣ If it's the userLocationCity → set index to 0
                                 if weatherViewModel.userLocationCity?.id == city.id {
                                     selectedCityIndexStore.selectedCityIndex = 0
-                                    print("📍 [DEBUG] userLocationCity selected, index 0")
                                     return
                                 }
 
-                                // 2️⃣ If the city is already **in favorites** — just switch to its index
                                 if let index = favoriteCities.firstIndex(where: { $0.id == city.id }) {
                                     selectedCityIndexStore.selectedCityIndex = index + 1
-                                    print("⭐ [DEBUG] City is already in favorites, switching to index \(selectedCityIndexStore.selectedCityIndex)")
                                     return
                                 }
 
-                                // 3️⃣ If the city is **not in favorites**, it becomes `selectedCity`
                                 selectedCityIndexStore.selectedCityIndex = favoriteCities.count + 1
-                                print("📌 [DEBUG] New city, adding as selectedCity, index \(selectedCityIndexStore.selectedCityIndex)")
                             }
                         }
                         .padding()

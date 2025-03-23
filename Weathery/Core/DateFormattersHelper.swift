@@ -10,10 +10,9 @@ import CoreLocation
 
 func formattedForecastDate(date: Date) -> String {
     let formatter = DateFormatter()
-    formatter.dateFormat = "EEE" // Выдаст "Mon", "Tue", "Wed" и т. д.
+    formatter.dateFormat = "EEE"
     return formatter.string(from: date)
 }
-
 
 func formattedDate(date: Date) -> String {
     let dateFormatter = DateFormatter()
@@ -27,54 +26,38 @@ func formatTime(date: Date) -> String {
     return dateFormatter.string(from: date)
 }
 
-//
-//func getTimeZone(for latitude: Double, longitude: Double) async -> TimeZone? {
-//    let location = CLLocation(latitude: latitude, longitude: longitude)
-//    let geocoder = CLGeocoder()
-//
-//    do {
-//        let placemarks = try await geocoder.reverseGeocodeLocation(location)
-//        return placemarks.first?.timeZone
-//    } catch {
-//        print("Ошибка при получении часового пояса: \(error.localizedDescription)")
-//        return nil
-//    }
-//}
-
 func getTimeZone(for latitude: Double, longitude: Double) async -> TimeZone? {
     print("🌍 Получаем таймзону для \(latitude), \(longitude)")
-
+    
     let location = CLLocation(latitude: latitude, longitude: longitude)
-       let geocoder = CLGeocoder()
-       
-       do {
-           let placemarks = try await geocoder.reverseGeocodeLocation(location)
-           if let timeZone = placemarks.first?.timeZone {
-               print("✅ Таймзона найдена: \(timeZone.identifier)")
-               return timeZone
-           }
-       } catch {
-           print("⚠️ Ошибка при получении таймзоны: \(error.localizedDescription)")
-       }
-       
-       return TimeZone.current
+    let geocoder = CLGeocoder()
+    
+    do {
+        let placemarks = try await geocoder.reverseGeocodeLocation(location)
+        if let timeZone = placemarks.first?.timeZone {
+            print("✅ Таймзона найдена: \(timeZone.identifier)")
+            return timeZone
+        }
+    } catch {
+        print("⚠️ Ошибка при получении таймзоны: \(error.localizedDescription)")
+    }
+    
+    return TimeZone.current
 }
-
 
 func convertToLocalTime(_ utcDate: Date, latitude: Double, longitude: Double) async -> String {
     let formatter = DateFormatter()
-    formatter.dateFormat = "h:mm a" // Пример: 12:30 PM
-
+    formatter.dateFormat = "h:mm a"
+    
     if let timeZone = await getTimeZone(for: latitude, longitude: longitude) {
-
+        
         formatter.timeZone = timeZone
     } else {
         formatter.timeZone = .current
     }
-
+    
     return formatter.string(from: utcDate)
 }
-
 
 func parseUTCDate(from string: String) -> Date? {
     let formatter = ISO8601DateFormatter()
@@ -82,19 +65,18 @@ func parseUTCDate(from string: String) -> Date? {
     return formatter.date(from: string)
 }
 
-
 extension DateFormatter {
     static let timeWithAMPM: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateFormat = "h a" // "h:mm a" если нужны минуты
+        formatter.dateFormat = "h a"
         formatter.locale = Locale.current
         return formatter
     }()
     
     static let timeWithMinutes: DateFormatter = {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "h:mm a" // Показывает "9:15 PM"
-            formatter.locale = Locale.current
-            return formatter
-        }()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        formatter.locale = Locale.current
+        return formatter
+    }()
 }

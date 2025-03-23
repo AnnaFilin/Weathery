@@ -38,7 +38,7 @@ struct MapView: View {
                     
                     
                     if let location = weatherViewModel.location {
-                        Text("Координаты: \(location.latitude), \(location.longitude)")
+                        Text("Coordinates: \(location.latitude), \(location.longitude)")
                             .foregroundColor(.red)
                         //                                    WeatherMapsView(
                         //                                        location: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude),
@@ -67,7 +67,3 @@ struct MapView: View {
         .padding(.horizontal, AppSpacing.horizontal)
     }
 }
-//
-//#Preview {
-//    MapView()
-//}

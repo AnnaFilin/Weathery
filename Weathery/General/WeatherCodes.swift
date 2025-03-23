@@ -42,40 +42,12 @@ let weatherCodes: [Int: WeatherCode] = [
 ]
 
 
-//func getWeatherInfo(for code: Int, isDaytime: Bool = true) -> (description: String, icon: String) {
 func getWeatherDescription(for code: Int, isDaytime: Bool = true) -> String{
     
     if let weather = weatherCodes[code] {
-        //        return (weather.description, isDaytime ? weather.iconDay : (weather.iconNight ?? weather.iconDay))
         return weather.description
         
     } else {
-        //        return ("Unknown", "unknown")
         return "Unknown"
     }
 }
-//}
-//
-//func getWeatherIcon(for code: Int, isDaytime: Bool = true) -> String{
-//
-//    if let weather = weatherCodes[code] {
-//        return  isDaytime ? weather.iconDay : (weather.iconNight)
-//  
-//
-//    } else {
-////        return ("Unknown", "unknown")
-//        return "Unknown"
-//    }
-//}
-////
-//func getWeatherInfo(for code: Int, isDaytime: Bool = true) -> (description: String, icon: String) {
-//
-//    if let weather = weatherCodes[code] {
-//        return (weather.description, isDaytime ? weather.iconDay : (weather.iconNight ?? weather.iconDay))
-////        return weather.description
-//
-//    } else {
-//        return ("Unknown", "unknown")
-////        return "Unknown"
-//    }
-//}
